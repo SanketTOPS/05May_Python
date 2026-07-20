@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css" />
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+    </style>
+</head>
+
+<body
+    class="bg-gradient-to-br from-indigo-700 via-purple-700 to-pink-600 min-h-screen flex items-center justify-center px-4 py-10">
+
+    <!-- Background Blur -->
+    <div class="absolute inset-0 overflow-hidden">
+        <div class="absolute w-72 h-72 bg-pink-400 rounded-full opacity-20 blur-3xl -top-10 -left-10"></div>
+        <div class="absolute w-96 h-96 bg-blue-400 rounded-full opacity-20 blur-3xl bottom-0 right-0"></div>
+    </div>
+
+    <!-- Card -->
+    <div class="relative w-full max-w-lg">
+
+        <div class="backdrop-blur-xl bg-white/15 border border-white/20 rounded-3xl shadow-2xl p-8">
+
+            <!-- Logo -->
+            <div class="text-center mb-8">
+
+                <div class="w-20 h-20 mx-auto bg-white rounded-full flex items-center justify-center shadow-lg mb-4">
+                    <i class="fa-solid fa-user-plus text-4xl text-indigo-600"></i>
+                </div>
+
+                <h1 class="text-3xl font-bold text-white">
+                    Create Account
+                </h1>
+
+                <p class="text-gray-200 mt-2">
+                    Join us today
+                </p>
+
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                <!-- Full Name -->
+                <div class="mb-5">
+
+                    <label class="text-white text-sm block mb-2">
+                        Full Name
+                    </label>
+
+                    <div class="relative">
+
+                        <span class="absolute left-4 top-3 text-gray-400">
+                            <i class="fa-solid fa-user"></i>
+                        </span>
+
+                        <input type="text" name="fullname" placeholder="Enter Full Name"
+                            class="w-full pl-12 pr-4 py-3 rounded-xl bg-white/80 outline-none focus:ring-4 focus:ring-indigo-300">
+
+                    </div>
+
+                </div>
+
+                <!-- Email -->
+                <div class="mb-5">
+
+                    <label class="text-white text-sm block mb-2">
+                        Email Address
+                    </label>
+
+                    <div class="relative">
+
+                        <span class="absolute left-4 top-3 text-gray-400">
+                            <i class="fa-solid fa-envelope"></i>
+                        </span>
+
+                        <input type="email" name="email" placeholder="Enter Email"
+                            class="w-full pl-12 pr-4 py-3 rounded-xl bg-white/80 outline-none focus:ring-4 focus:ring-indigo-300">
+
+                    </div>
+
+                </div>
+
+                <!-- Mobile -->
+                <div class="mb-5">
+
+                    <label class="text-white text-sm block mb-2">
+                        Mobile Number
+                    </label>
+
+                    <div class="relative">
+
+                        <span class="absolute left-4 top-3 text-gray-400">
+                            <i class="fa-solid fa-phone"></i>
+                        </span>
+
+                        <input type="tel" name="mobile" maxlength="10" placeholder="Enter Mobile Number"
+                            class="w-full pl-12 pr-4 py-3 rounded-xl bg-white/80 outline-none focus:ring-4 focus:ring-indigo-300">
+
+                    </div>
+
+                </div>
+
+                <!-- Password -->
+                <div class="mb-5">
+
+                    <label class="text-white text-sm block mb-2">
+                        Password
+                    </label>
+
+                    <div class="relative">
+
+                        <span class="absolute left-4 top-3 text-gray-400">
+                            <i class="fa-solid fa-lock"></i>
+                        </span>
+
+                        <input id="password" name="password" type="password" placeholder="Create Password"
+                            class="w-full pl-12 pr-12 py-3 rounded-xl bg-white/80 outline-none focus:ring-4 focus:ring-indigo-300">
+
+                        <button type="button" onclick="togglePassword()" class="absolute right-4 top-3 text-gray-500">
+
+                            <i id="eyeIcon" class="fa-solid fa-eye"></i>
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+                <!-- Terms -->
+                <div class="flex items-start mb-6">
+
+                    <input type="checkbox" class="mt-1 accent-indigo-600 mr-3">
+
+                    <label class="text-white text-sm">
+                        I agree to the
+                        <a href="#" class="text-yellow-300 hover:underline">
+                            Terms & Conditions
+                        </a>
+                        and
+                        <a href="#" class="text-yellow-300 hover:underline">
+                            Privacy Policy
+                        </a>.
+                    </label>
+
+                </div>
+
+                <!-- Button -->
+                <button
+                    class="w-full bg-white text-indigo-700 font-semibold py-3 rounded-xl hover:bg-indigo-700 hover:text-white transition duration-300 shadow-lg">
+
+                    Create Account
+
+                </button>
+
+            </form>
+
+            <!-- Divider -->
+            <div class="flex items-center my-6">
+
+                <hr class="flex-grow border-white/30">
+
+                <span class="px-4 text-white text-sm">
+                    OR
+                </span>
+
+                <hr class="flex-grow border-white/30">
+
+            </div>
+
+
+            <!-- Login Link -->
+            <div class="text-center mt-8 text-white">
+
+                Already have an account?
+
+                <a href="/" class="text-yellow-300 font-semibold hover:underline">
+
+                    Login
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+
+        function togglePassword() {
+
+            let password = document.getElementById("password");
+            let eye = document.getElementById("eyeIcon");
+
+            if (password.type === "password") {
+                password.type = "text";
+                eye.classList.replace("fa-eye", "fa-eye-slash");
+            } else {
+                password.type = "password";
+                eye.classList.replace("fa-eye-slash", "fa-eye");
+            }
+
+        }
+
+    </script>
+
+</body>
+
+</html>
