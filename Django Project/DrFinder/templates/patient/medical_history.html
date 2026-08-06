@@ -1,0 +1,59 @@
+{% extends 'patient/base_patient.html' %}
+{% block title %}Medical History — DrFinder{% endblock %}
+
+{% block patient_content %}
+<div class="max-w-2xl space-y-6">
+  <div>
+    <h1 class="text-2xl font-extrabold text-slate-900">Medical History</h1>
+    <p class="text-slate-500 text-sm mt-1">Keep your health information up to date for better doctor consultations.</p>
+  </div>
+
+  <form method="post" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
+    {% csrf_token %}
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+      <div>
+        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Date of Birth</label>
+        {{ form.date_of_birth }}
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Gender</label>
+        {{ form.gender }}
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Blood Group</label>
+        {{ form.blood_group }}
+        <p class="text-xs text-slate-400 mt-1">e.g. A+, B-, O+, AB+</p>
+      </div>
+    </div>
+
+    <div>
+      <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Medical History & Conditions</label>
+      {{ form.medical_history }}
+      <p class="text-xs text-slate-400 mt-1">Include chronic illnesses, past surgeries, known allergies, and current medications.</p>
+    </div>
+
+    {% if form.errors %}
+    <div class="bg-red-50 border border-red-200 rounded-xl p-3 text-sm text-red-700">
+      Please fix the errors before saving.
+    </div>
+    {% endif %}
+
+    <div class="flex gap-3 pt-2">
+      <button type="submit" class="rounded-xl bg-indigo-600 px-6 py-2.5 text-sm font-bold text-white hover:bg-indigo-500 transition shadow-md">
+        💾 Save Medical History
+      </button>
+    </div>
+  </form>
+
+  <!-- Info Card -->
+  <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-5 text-sm text-indigo-800">
+    <h3 class="font-bold mb-1">Why is this important?</h3>
+    <p class="text-indigo-700 leading-relaxed text-xs">Keeping your medical history updated helps doctors make better decisions during consultations. This information is only visible to doctors you book appointments with.</p>
+  </div>
+</div>
+<style>
+  input[type="text"], input[type="date"], select, textarea { width:100%; border:1px solid #e2e8f0; border-radius:10px; padding:9px 12px; font-size:0.875rem; color:#1e293b; outline:none; }
+  input:focus, select:focus, textarea:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.1); }
+</style>
+{% endblock %}

@@ -1,0 +1,99 @@
+{% extends 'doctor/base_doctor.html' %}
+{% block title %}Write Prescription for {{ appointment.patient.user.get_full_name }} — DrFinder{% endblock %}
+
+{% block doctor_content %}
+<div class="max-w-3xl mx-auto space-y-6">
+  
+  <!-- Breadcrumb & Header -->
+  <div>
+    <a href="{% url 'appointment_management' %}" class="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-emerald-600 font-bold mb-2 transition">
+      ← Back to Appointments
+    </a>
+    <h1 class="text-2xl font-extrabold text-slate-900">Write Medical Prescription ✍️</h1>
+    <p class="text-slate-500 text-sm mt-0.5">Generate prescription logs and medication instructions for patients.</p>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- Patient Context Details -->
+    <div class="md:col-span-1 bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4 h-fit">
+      <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">Appointment Overview</h2>
+      
+      <div class="flex items-center gap-3">
+        <div class="h-10 w-10 rounded-xl bg-emerald-50 text-emerald-600 font-bold flex items-center justify-center border shrink-0 overflow-hidden">
+          {% if appointment.patient.user.profile_picture %}
+            <img src="{{ appointment.patient.user.profile_picture.url }}" class="h-full w-full object-cover" alt="">
+          {% else %}PT{% endif %}
+        </div>
+        <div class="overflow-hidden">
+          <p class="text-sm font-bold text-slate-900 truncate">{{ appointment.patient.user.get_full_name }}</p>
+          <p class="text-[11px] text-slate-500 font-medium">{{ appointment.patient.get_gender_display }} · {{ appointment.patient.blood_group|default:"O+" }}</p>
+        </div>
+      </div>
+      
+      <div class="text-xs text-slate-650 space-y-2 border-t border-slate-100 pt-3">
+        <div>
+          <span class="font-bold text-slate-700">Date:</span> {{ appointment.slot.date|date:"d M Y" }}
+        </div>
+        <div>
+          <span class="font-bold text-slate-700">Time:</span> {{ appointment.slot.start_time|time:"H:i" }} - {{ appointment.slot.end_time|time:"H:i" }}
+        </div>
+        <div>
+          <span class="font-bold text-slate-700">Symptoms:</span>
+          <p class="mt-1 text-slate-600 bg-slate-50 border border-slate-100 rounded-lg p-2 leading-relaxed">
+            {{ appointment.symptoms|default:"No symptoms listed." }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Prescription Form -->
+    <div class="md:col-span-2 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+      <form method="post" class="space-y-5">
+        {% csrf_token %}
+        
+        <!-- Medicines Field -->
+        <div class="space-y-1.5">
+          <label for="{{ form.medicines.id_for_label }}" class="text-sm font-bold text-slate-900 block flex justify-between">
+            <span>Medicines & Dosages <span class="text-red-500">*</span></span>
+            <span class="text-[10px] font-bold text-slate-400 normal-case">e.g. Paracetamol 650mg - 1-0-1 - After Food - 5 Days</span>
+          </label>
+          {{ form.medicines }}
+          {% if form.medicines.errors %}
+            <p class="text-xs font-bold text-red-500">{{ form.medicines.errors.0 }}</p>
+          {% endif %}
+          <p class="text-[10px] text-slate-400 leading-normal">Mention each medicine on a new line with clear dosage, frequency (Morning-Afternoon-Night), diet notes, and duration.</p>
+        </div>
+
+        <!-- Instructions Field -->
+        <div class="space-y-1.5">
+          <label for="{{ form.instructions.id_for_label }}" class="text-sm font-bold text-slate-900 block">Special Instructions / General Notes</label>
+          {{ form.instructions }}
+          {% if form.instructions.errors %}
+            <p class="text-xs font-bold text-red-500">{{ form.instructions.errors.0 }}</p>
+          {% endif %}
+          <p class="text-[10px] text-slate-400 leading-normal">Examples: Rest, drink fluids, avoid spicy food, or report back if fever exceeds 101°F.</p>
+        </div>
+
+        <!-- Follow-up Date Field -->
+        <div class="space-y-1.5 max-w-xs">
+          <label for="{{ form.follow_up_date.id_for_label }}" class="text-sm font-bold text-slate-900 block">Follow-up Visit Date</label>
+          {{ form.follow_up_date }}
+          {% if form.follow_up_date.errors %}
+            <p class="text-xs font-bold text-red-500">{{ form.follow_up_date.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
+          <a href="{% url 'appointment_management' %}" class="rounded-xl border border-slate-200 bg-white hover:bg-slate-50 px-5 py-2.5 text-xs font-bold text-slate-600 transition">
+            Cancel
+          </a>
+          <button type="submit" class="rounded-xl bg-emerald-600 hover:bg-emerald-500 px-5 py-2.5 text-xs font-bold text-white transition shadow-md">
+            💾 Save & Issue Prescription
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

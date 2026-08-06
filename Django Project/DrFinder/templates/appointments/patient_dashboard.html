@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+
+{% block title %}DrFinder - Patient Dashboard{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 bg-slate-50 min-h-[70vh]">
+    <!-- Welcome Header -->
+    <div class="bg-gradient-to-r from-indigo-650 to-indigo-800 rounded-3xl p-6 sm:p-10 text-white shadow-xl shadow-indigo-150 mb-10 flex flex-col md:flex-row items-center justify-between gap-6 bg-indigo-600">
+        <div>
+            <h2 class="text-3xl font-extrabold">Welcome back, {{ user.first_name }}!</h2>
+            <p class="text-indigo-100 text-sm mt-1.5 max-w-md">Access your scheduled medical sessions, digital prescriptions, and invoice receipts in one place.</p>
+        </div>
+        <a href="{% url 'doctor_search' %}" class="rounded-xl bg-white px-5 py-3 text-sm font-bold text-indigo-600 hover:bg-slate-50 transition shadow-lg shrink-0">
+            🔍 Find a Doctor & Book Slot
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Upcoming Appointments (Left Columns) -->
+        <div class="lg:col-span-2 space-y-6">
+            <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                📅 Upcoming Consultations
+                <span class="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-semibold text-indigo-700">
+                    {{ upcoming_appointments.count }}
+                </span>
+            </h3>
+
+            {% for appt in upcoming_appointments %}
+                <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div class="flex items-center gap-4">
+                        <div class="h-16 w-16 rounded-xl bg-slate-50 overflow-hidden flex-shrink-0 flex items-center justify-center border">
+                            {% if appt.doctor.user.profile_picture %}
+                                <img src="{{ appt.doctor.user.profile_picture.url }}" alt="{{ appt.doctor.user.get_full_name }}" class="h-full w-full object-cover">
+                            {% else %}
+                                <span class="text-sm font-bold text-indigo-600">DR</span>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold uppercase tracking-wider text-indigo-600">{{ appt.doctor.get_specialization_display }}</span>
+                            <h4 class="text-base font-bold text-slate-900">Dr. {{ appt.doctor.user.get_full_name }}</h4>
+                            <p class="text-xs text-slate-400 font-semibold">{{ appt.doctor.hospital_name }}</p>
+                            <p class="text-sm text-slate-500 mt-2 flex items-center gap-1.5">
+                                <span>📅 {{ appt.slot.date|date:"F d, Y" }}</span>
+                                <span class="text-slate-300">|</span>
+                                <span>⏰ {{ appt.slot.start_time|time:"H:i" }} - {{ appt.slot.end_time|time:"H:i" }}</span>
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-col sm:items-end gap-2 w-full sm:w-auto">
+                        {% if appt.status == 'PENDING' %}
+                            <span class="inline-flex self-start sm:self-auto items-center rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700 ring-1 ring-inset ring-amber-600/20">
+                                Pending Payment
+                            </span>
+                            <a href="{% url 'payment_checkout' appt.id %}" class="w-full sm:w-auto rounded-lg bg-emerald-600 hover:bg-emerald-500 px-4 py-2 text-center text-xs font-bold text-white shadow-md hover:shadow-lg transition">
+                                Pay ${{ appt.doctor.consultation_fee }} &rarr;
+                            </a>
+                        {% elif appt.status == 'CONFIRMED' %}
+                            <span class="inline-flex self-start sm:self-auto items-center rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 ring-1 ring-inset ring-indigo-600/20">
+                                Confirmed
+                            </span>
+                            <div class="flex gap-2">
+                                <a href="{% url 'payment_receipt' appt.payment.id %}" class="px-3 py-1.5 border border-slate-200 hover:bg-slate-50 rounded-lg text-xs font-bold text-slate-600 transition">
+                                    Receipt
+                                </a>
+                                <form action="{% url 'appointment_action' appt.id 'cancel' %}" method="post" onsubmit="return confirm('Cancel this appointment?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="px-3 py-1.5 hover:bg-red-50 hover:text-red-600 border border-transparent rounded-lg text-xs font-bold text-slate-400 transition">
+                                        Cancel
+                                    </button>
+                                </form>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% empty %}
+                <div class="text-center py-10 bg-white border border-slate-200 border-dashed rounded-2xl text-slate-400">
+                    No upcoming appointments. Schedule one above!
+                </div>
+            {% endfor %}
+
+            <!-- Past Appointments History -->
+            <div class="pt-6">
+                <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2 mb-6">
+                    📜 Consultation History
+                </h3>
+                <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+                    <table class="min-w-full divide-y divide-slate-200 text-left">
+                        <thead class="bg-slate-55 bg-slate-50 text-slate-500 text-xs uppercase font-semibold">
+                            <tr>
+                                <th scope="col" class="px-6 py-4">Doctor</th>
+                                <th scope="col" class="px-6 py-4">Schedule</th>
+                                <th scope="col" class="px-6 py-4">Status</th>
+                                <th scope="col" class="px-6 py-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200 text-sm">
+                            {% for appt in past_appointments %}
+                                <tr>
+                                    <td class="px-6 py-4 font-semibold text-slate-900">Dr. {{ appt.doctor.user.get_full_name }}</td>
+                                    <td class="px-6 py-4 text-slate-500">{{ appt.slot.date }} at {{ appt.slot.start_time|time:"H:i" }}</td>
+                                    <td class="px-6 py-4">
+                                        {% if appt.status == 'COMPLETED' %}
+                                            <span class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20">Completed</span>
+                                        {% elif appt.status == 'CANCELLED' %}
+                                            <span class="inline-flex items-center rounded-full bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">Cancelled</span>
+                                        {% else %}
+                                            <span class="inline-flex items-center rounded-full bg-slate-55 px-2 py-1 text-xs font-medium text-slate-700 ring-1 ring-inset ring-slate-600/20">Expired</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        {% if appt.prescription %}
+                                            <a href="#prescription-{{ appt.prescription.id }}" class="text-indigo-600 font-bold hover:underline">View Prescription</a>
+                                        {% else %}
+                                            <span class="text-slate-400">None</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-6 text-slate-400">No past consultations found.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prescriptions & Profile Card (Right Column) -->
+        <div class="space-y-6">
+            <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                💊 Prescriptions List
+            </h3>
+
+            {% for presc in prescriptions %}
+                <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm scroll-mt-20" id="prescription-{{ presc.id }}">
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                        <div>
+                            <span class="text-xs text-slate-400 block font-semibold uppercase tracking-wider">Issued By</span>
+                            <span class="text-sm font-bold text-slate-900">Dr. {{ presc.doctor.user.get_full_name }}</span>
+                        </div>
+                        <span class="text-xs font-semibold text-slate-400">{{ presc.created_at|date:"d M Y" }}</span>
+                    </div>
+
+                    <div class="mt-4">
+                        <span class="text-xs text-slate-400 block font-semibold uppercase tracking-wider mb-2">Medicines</span>
+                        <div class="bg-slate-50 rounded-xl p-3 text-xs text-slate-700 whitespace-pre-line leading-relaxed font-mono">
+                            {{ presc.medicines }}
+                        </div>
+                    </div>
+
+                    {% if presc.instructions %}
+                        <div class="mt-4">
+                            <span class="text-xs text-slate-400 block font-semibold uppercase tracking-wider">Instructions</span>
+                            <p class="text-xs text-slate-600 mt-1 leading-relaxed">{{ presc.instructions }}</p>
+                        </div>
+                    {% endif %}
+
+                    {% if presc.follow_up_date %}
+                        <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                            <span class="text-slate-400 font-semibold uppercase tracking-wider">Follow-Up Date</span>
+                            <span class="font-bold text-indigo-600">{{ presc.follow_up_date }}</span>
+                        </div>
+                    {% endif %}
+                </div>
+            {% empty %}
+                <div class="text-center py-10 bg-white border border-slate-200 border-dashed rounded-2xl text-slate-400">
+                    No prescriptions issued yet.
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

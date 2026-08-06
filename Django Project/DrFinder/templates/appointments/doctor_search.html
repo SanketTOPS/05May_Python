@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block title %}DrFinder - Search Doctors{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 bg-slate-50 min-h-[70vh]">
+    <div class="mb-8 border-b pb-5">
+        <h2 class="text-2xl font-bold text-slate-900 sm:text-3xl">Find a Medical Specialist</h2>
+        <p class="mt-1 text-sm text-slate-500">Filter doctor directory by specialty, fee, experience, or hospital name.</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <!-- Sidebar Search Filters -->
+        <div class="lg:col-span-1 bg-white border border-slate-200 p-6 rounded-2xl shadow-sm h-fit">
+            <h3 class="text-base font-bold text-slate-900 mb-4 pb-2 border-b border-slate-100 flex items-center gap-1.5">
+                ⚙️ Filter Options
+            </h3>
+            <form action="{% url 'doctor_search' %}" method="get" class="space-y-4">
+                <!-- Search term -->
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Keywords</label>
+                    <input type="text" name="q" value="{{ q }}" placeholder="Name, hospital, clinic..." 
+                           class="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 sm:text-sm transition">
+                </div>
+
+                <!-- Specialization -->
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Specialty</label>
+                    <select name="specialization" 
+                            class="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 sm:text-sm transition">
+                        <option value="ALL" {% if selected_specialization == 'ALL' %}selected{% endif %}>All Specialties</option>
+                        {% for key, val in specializations %}
+                            <option value="{{ key }}" {% if selected_specialization == key %}selected{% endif %}>{{ val }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Fee range -->
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Fee Range ($)</label>
+                    <div class="grid grid-cols-2 gap-2 mt-1">
+                        <input type="number" name="min_fee" value="{{ min_fee }}" placeholder="Min" min="0"
+                               class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 sm:text-sm transition">
+                        <input type="number" name="max_fee" value="{{ max_fee }}" placeholder="Max" min="0"
+                               class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 sm:text-sm transition">
+                    </div>
+                </div>
+
+                <!-- Control Buttons -->
+                <div class="pt-4 flex flex-col gap-2">
+                    <button type="submit" class="w-full rounded-xl bg-indigo-600 hover:bg-indigo-500 py-2.5 text-sm font-bold text-white transition shadow-md shadow-indigo-150">
+                        Apply Filters
+                    </button>
+                    <a href="{% url 'doctor_search' %}" class="w-full text-center rounded-xl border border-slate-350 border-slate-300 hover:bg-slate-50 py-2.5 text-sm font-semibold text-slate-700 transition">
+                        Reset All
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Doctors Directory Output -->
+        <div class="lg:col-span-3 space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {% for doctor in doctors %}
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between hover:shadow-md transition">
+                        <div class="p-6">
+                            <div class="flex items-center gap-4 mb-4">
+                                <div class="h-16 w-16 rounded-xl bg-slate-50 overflow-hidden flex-shrink-0 flex items-center justify-center border">
+                                    {% if doctor.user.profile_picture %}
+                                        <img src="{{ doctor.user.profile_picture.url }}" alt="{{ doctor.user.get_full_name }}" class="h-full w-full object-cover">
+                                    {% else %}
+                                        <span class="text-sm font-bold text-indigo-400">DR</span>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <span class="text-xs font-bold uppercase tracking-wider text-indigo-600 block">{{ doctor.get_specialization_display }}</span>
+                                    <h4 class="text-base font-bold text-slate-900">Dr. {{ doctor.user.get_full_name }}</h4>
+                                    <span class="text-xs text-slate-400 block">{{ doctor.hospital_name }}</span>
+                                </div>
+                            </div>
+                            
+                            <p class="text-xs font-medium text-slate-400 mt-2 flex items-center gap-2">
+                                <span>🎓 {{ doctor.qualification }}</span>
+                                <span>•</span>
+                                <span>⭐ {{ doctor.experience_years }} Years Exp</span>
+                            </p>
+                            <p class="text-sm text-slate-500 mt-3 line-clamp-3 leading-relaxed">{{ doctor.bio }}</p>
+                        </div>
+                        
+                        <div class="bg-slate-50 border-t border-slate-100 p-5 flex items-center justify-between">
+                            <div>
+                                <span class="text-xs text-slate-400 block font-semibold uppercase tracking-wider">Fee</span>
+                                <span class="text-base font-extrabold text-slate-950">${{ doctor.consultation_fee }}</span>
+                            </div>
+                            <a href="{% url 'doctor_detail' doctor.pk %}" class="rounded-xl bg-indigo-600 hover:bg-indigo-500 px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-indigo-150 transition">
+                                View Slots &rarr;
+                            </a>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="col-span-2 text-center py-12 bg-white border border-slate-200 border-dashed rounded-3xl text-slate-400">
+                        No doctors matching your filter criteria were found.
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination block -->
+            {% if is_paginated %}
+                <div class="flex items-center justify-center gap-2 pt-6">
+                    {% if page_obj.has_previous %}
+                        <a href="?page={{ page_obj.previous_page_number }}{% if q %}&q={{ q }}{% endif %}{% if selected_specialization %}&specialization={{ selected_specialization }}{% endif %}{% if min_fee %}&min_fee={{ min_fee }}{% endif %}{% if max_fee %}&max_fee={{ max_fee }}{% endif %}" 
+                           class="px-4 py-2 border rounded-xl hover:bg-slate-50 text-slate-700 font-semibold text-sm transition">
+                            &larr; Prev
+                        </a>
+                    {% endif %}
+                    <span class="text-sm font-semibold text-slate-500">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}{% if q %}&q={{ q }}{% endif %}{% if selected_specialization %}&specialization={{ selected_specialization }}{% endif %}{% if min_fee %}&min_fee={{ min_fee }}{% endif %}{% if max_fee %}&max_fee={{ max_fee }}{% endif %}" 
+                           class="px-4 py-2 border rounded-xl hover:bg-slate-50 text-slate-700 font-semibold text-sm transition">
+                            Next &rarr;
+                        </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

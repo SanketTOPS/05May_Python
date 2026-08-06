@@ -1,0 +1,87 @@
+{% extends 'patient/base_patient.html' %}
+{% block title %}Help Center — DrFinder{% endblock %}
+
+{% block patient_content %}
+<div class="max-w-3xl space-y-6">
+  <div>
+    <h1 class="text-2xl font-extrabold text-slate-900">Help Center</h1>
+    <p class="text-slate-500 text-sm mt-1">Frequently asked questions and support links to help you navigate DrFinder.</p>
+  </div>
+
+  <!-- FAQ Section -->
+  <div class="space-y-4">
+    <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wider mb-2">Frequently Asked Questions</h2>
+
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden divide-y divide-slate-100">
+      <!-- FAQ 1 -->
+      <details class="group p-5" open>
+        <summary class="flex justify-between items-center font-bold text-slate-900 cursor-pointer list-none">
+          <span>How do I book an appointment?</span>
+          <span class="transition-transform group-open:rotate-180">▼</span>
+        </summary>
+        <p class="text-xs text-slate-600 mt-3 leading-relaxed">
+          Navigate to the "Find Doctors" page using the link in the top menu or dashboard. Search for your preferred doctor, view their available time slots, fill in your symptoms, and click "Book slot". Complete the payment checkout to confirm your consultation slot.
+        </p>
+      </details>
+
+      <!-- FAQ 2 -->
+      <details class="group p-5">
+        <summary class="flex justify-between items-center font-bold text-slate-900 cursor-pointer list-none">
+          <span>What is the Wallet feature?</span>
+          <span class="transition-transform group-open:rotate-180">▼</span>
+        </summary>
+        <p class="text-xs text-slate-600 mt-3 leading-relaxed">
+          The wallet allows you to load funds in advance. When checking out an appointment, you can instantly pay using your wallet balance for a much faster booking flow, without needing to verify cards during checkout.
+        </p>
+      </details>
+
+      <!-- FAQ 3 -->
+      <details class="group p-5">
+        <summary class="flex justify-between items-center font-bold text-slate-900 cursor-pointer list-none">
+          <span>How do I access my prescription?</span>
+          <span class="transition-transform group-open:rotate-180">▼</span>
+        </summary>
+        <p class="text-xs text-slate-600 mt-3 leading-relaxed">
+          After a consultation is completed, the doctor will write and submit a prescription. Go to the "Prescriptions" tab on your sidebar menu. You will find a list of all prescriptions, where you can view medical instructions and print/download the page.
+        </p>
+      </details>
+
+      <!-- FAQ 4 -->
+      <details class="group p-5">
+        <summary class="flex justify-between items-center font-bold text-slate-900 cursor-pointer list-none">
+          <span>Can I cancel an appointment?</span>
+          <span class="transition-transform group-open:rotate-180">▼</span>
+        </summary>
+        <p class="text-xs text-slate-600 mt-3 leading-relaxed">
+          Yes, you can cancel any confirmed appointment up to the scheduled consultation time. Go to "Upcoming Appointments" and click the cancel button. The slots will be immediately released. Please refer to our refund policy in the terms section.
+        </p>
+      </details>
+
+      <!-- FAQ 5 -->
+      <details class="group p-5">
+        <summary class="flex justify-between items-center font-bold text-slate-900 cursor-pointer list-none">
+          <span>How do support tickets work?</span>
+          <span class="transition-transform group-open:rotate-180">▼</span>
+        </summary>
+        <p class="text-xs text-slate-600 mt-3 leading-relaxed">
+          If you run into payment issues, system bugs, or have other questions, you can open a new ticket in the "Support Tickets" section. Our administrative team will review it and reply directly inside the ticket portal.
+        </p>
+      </details>
+    </div>
+  </div>
+
+  <!-- Contact Card -->
+  <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+    <div>
+      <h3 class="font-bold text-indigo-900">Still need help?</h3>
+      <p class="text-xs text-indigo-700 mt-0.5">Submit a support ticket and our customer care team will respond within 24 hours.</p>
+    </div>
+    <a href="{% url 'support_tickets' %}" class="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-indigo-500 transition shadow-md shrink-0">
+      🎫 Open Support Ticket
+    </a>
+  </div>
+</div>
+<style>
+  summary::-webkit-details-marker { display: none; }
+</style>
+{% endblock %}

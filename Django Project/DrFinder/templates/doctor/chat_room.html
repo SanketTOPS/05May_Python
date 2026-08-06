@@ -1,0 +1,115 @@
+{% extends 'doctor/base_doctor.html' %}
+{% block title %}Chat with {{ patient_user.get_full_name }} — DrFinder{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+  .chat-box {
+    height: 480px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+  .bubble-sender {
+    background-color: #059669; /* Emerald 600 */
+    color: #ffffff;
+    border-top-left-radius: 1rem;
+    border-top-right-radius: 1rem;
+    border-bottom-left-radius: 1rem;
+  }
+  .bubble-receiver {
+    background-color: #f1f5f9; /* Slate 100 */
+    color: #1e293b; /* Slate 800 */
+    border-top-left-radius: 1rem;
+    border-top-right-radius: 1rem;
+    border-bottom-right-radius: 1rem;
+  }
+</style>
+{% endblock %}
+
+{% block doctor_content %}
+<div class="max-w-4xl mx-auto space-y-6">
+  
+  <!-- Back button & Room header -->
+  <div class="flex items-center gap-3">
+    <a href="{% url 'doctor_chat_inbox' %}" class="h-10 w-10 rounded-full border bg-white hover:bg-slate-50 transition flex items-center justify-center shrink-0">
+      <svg class="h-5 w-5 text-slate-650" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+      </svg>
+    </a>
+    <div class="flex items-center gap-3 overflow-hidden">
+      <div class="h-11 w-11 rounded-xl bg-emerald-50 text-emerald-600 font-bold flex items-center justify-center border overflow-hidden shrink-0">
+        {% if patient_user.profile_picture %}
+          <img src="{{ patient_user.profile_picture.url }}" class="h-full w-full object-cover" alt="">
+        {% else %}
+          {{ patient_user.first_name|slice:":1" }}{{ patient_user.last_name|slice:":1" }}
+        {% endif %}
+      </div>
+      <div>
+        <h1 class="text-base font-bold text-slate-900 truncate leading-tight">{{ patient_user.get_full_name }}</h1>
+        <span class="text-[10px] text-emerald-600 font-extrabold flex items-center gap-1">
+          <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Online Consultation
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat Log and Input form -->
+  <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+    <!-- Log -->
+    <div id="chat-messages-container" class="chat-box p-6 space-y-4">
+      {% for msg in chat_messages %}
+        {% if msg.sender == request.user %}
+          <!-- Sent by me -->
+          <div class="flex justify-end items-end gap-2.5">
+            <div class="flex flex-col items-end max-w-[70%]">
+              <div class="bubble-sender px-4.5 py-2.5 text-sm shadow-sm leading-relaxed">
+                {{ msg.message }}
+              </div>
+              <span class="text-[9px] text-slate-400 mt-1 mr-1">{{ msg.timestamp|date:"H:i" }}</span>
+            </div>
+          </div>
+        {% else %}
+          <!-- Received -->
+          <div class="flex justify-start items-end gap-2.5">
+            <div class="flex flex-col items-start max-w-[70%]">
+              <div class="bubble-receiver px-4.5 py-2.5 text-sm shadow-sm leading-relaxed">
+                {{ msg.message }}
+              </div>
+              <span class="text-[9px] text-slate-400 mt-1 ml-1">{{ msg.timestamp|date:"H:i" }}</span>
+            </div>
+          </div>
+        {% endif %}
+      {% empty %}
+        <div class="text-center py-20 text-slate-450">
+          <p class="text-3xl mb-2">💬</p>
+          <p class="text-sm font-semibold">No messages yet.</p>
+          <p class="text-xs text-slate-400 mt-0.5">Send a message below to start your conversation.</p>
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- Form Input Box -->
+    <div class="p-4 border-t border-slate-100 bg-slate-50/50">
+      <form method="post" id="chat-form" class="flex gap-2">
+        {% csrf_token %}
+        <input type="text" name="message" required autocomplete="off" placeholder="Write your message here..."
+          class="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500 placeholder-slate-450 shadow-inner">
+        <button type="submit" class="rounded-xl bg-emerald-600 hover:bg-emerald-500 px-5 text-sm font-bold text-white transition shadow-sm flex items-center gap-1.5 shrink-0">
+          Send
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+          </svg>
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Auto Scroll to bottom
+  window.addEventListener('DOMContentLoaded', () => {
+    const container = document.getElementById('chat-messages-container');
+    container.scrollTop = container.scrollHeight;
+  });
+</script>
+{% endblock %}

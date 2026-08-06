@@ -1,0 +1,64 @@
+{% extends 'doctor/base_doctor.html' %}
+{% block title %}Patient History — DrFinder{% endblock %}
+
+{% block doctor_content %}
+<div class="space-y-6">
+  <div>
+    <h1 class="text-2xl font-extrabold text-slate-900">Patient Directory</h1>
+    <p class="text-slate-500 text-sm mt-0.5">Access profiles, health reports, and historical data of patients you have consulted with.</p>
+  </div>
+
+  <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+    <table class="min-w-full divide-y divide-slate-200 text-left text-sm">
+      <thead class="bg-slate-50 text-slate-500 text-xs uppercase font-semibold tracking-wider">
+        <tr>
+          <th class="px-6 py-4">Patient Name</th>
+          <th class="px-6 py-4">Gender / Age</th>
+          <th class="px-6 py-4">Blood Group</th>
+          <th class="px-6 py-4">Total Consultations</th>
+          <th class="px-6 py-4">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        {% for patient in patients %}
+        <tr class="hover:bg-slate-50/50 transition">
+          <td class="px-6 py-4 flex items-center gap-3">
+            <div class="h-9 w-9 rounded-xl bg-emerald-50 text-emerald-600 font-bold flex items-center justify-center text-xs overflow-hidden shrink-0">
+              {% if patient.user.profile_picture %}
+                <img src="{{ patient.user.profile_picture.url }}" class="h-full w-full object-cover" alt="">
+              {% else %}PT{% endif %}
+            </div>
+            <div>
+              <p class="font-bold text-slate-950">{{ patient.user.get_full_name }}</p>
+              <p class="text-xs text-slate-400">📞 {{ patient.user.phone|default:"N/A" }}</p>
+            </div>
+          </td>
+          <td class="px-6 py-4 text-slate-650">
+            {{ patient.get_gender_display|default:"-" }}
+          </td>
+          <td class="px-6 py-4 font-semibold text-slate-700">
+            {{ patient.blood_group|default:"-" }}
+          </td>
+          <td class="px-6 py-4 font-bold text-slate-900">
+            {{ patient.total_consultations }}
+          </td>
+          <td class="px-6 py-4">
+            <a href="{% url 'patient_detail' patient.id %}" class="text-xs font-bold text-emerald-600 hover:underline">
+              View Health Records →
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="px-6 py-12 text-center text-slate-400">
+            <p class="text-3xl mb-2">📁</p>
+            <p class="font-semibold text-slate-600">No patient files found.</p>
+            <p class="text-xs mt-1">Once you complete consultations, patients will show up in this directory.</p>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,267 @@
+{% extends 'doctor/base_doctor.html' %}
+{% block title %}Video Consultation Room — DrFinder{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+  .video-container {
+    position: relative;
+    width: 100%;
+    height: 520px;
+    background-color: #0f172a; /* Slate 900 */
+    border-radius: 1.5rem;
+    overflow: hidden;
+    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
+  }
+  .local-stream {
+    position: absolute;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    width: 160px;
+    height: 110px;
+    background-color: #1e293b;
+    border-radius: 1rem;
+    border: 2px solid rgba(255,255,255,0.2);
+    overflow: hidden;
+    z-index: 20;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+  }
+  .control-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 3rem;
+    width: 3rem;
+    border-radius: 9999px;
+    background-color: rgba(255,255,255,0.15);
+    backdrop-filter: blur(12px);
+    color: #ffffff;
+    transition: all 0.2s ease;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .control-button:hover {
+    background-color: rgba(255,255,255,0.25);
+    transform: scale(1.05);
+  }
+  .control-button.active-danger {
+    background-color: #ef4444;
+    border-color: #ef4444;
+  }
+  .control-button.active-danger:hover {
+    background-color: #dc2626;
+  }
+  .control-button.active-success {
+    background-color: #22c55e;
+    border-color: #22c55e;
+  }
+  .pulse-indicator {
+    position: relative;
+  }
+  .pulse-indicator::before {
+    content: '';
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background-color: #22c55e;
+    border-radius: 50%;
+    top: 50%;
+    left: -14px;
+    transform: translateY(-50%);
+  }
+  .pulse-indicator::after {
+    content: '';
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background-color: #22c55e;
+    border-radius: 50%;
+    top: 50%;
+    left: -14px;
+    transform: translateY(-50%);
+    animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+  @keyframes ping {
+    75%, 100% {
+      transform: translateY(-50%) scale(2.5);
+      opacity: 0;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block doctor_content %}
+<div class="space-y-6">
+  
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-extrabold text-slate-900">Virtual Consultation Room 🎥</h1>
+      <p class="text-slate-500 text-sm mt-0.5">Secure, encrypted high-fidelity video consult with your patient.</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <span class="text-xs font-bold text-slate-650 bg-slate-100 border px-3 py-1.5 rounded-xl flex items-center gap-1">
+        Room Status: <span class="pulse-indicator pl-4 text-emerald-700 font-extrabold">Active Connection</span>
+      </span>
+      <a href="{% url 'appointment_management' %}" class="rounded-xl border border-slate-200 bg-white hover:bg-slate-50 px-4 py-2 text-xs font-bold text-slate-700 transition">
+        Exit Room
+      </a>
+    </div>
+  </div>
+
+  <!-- Video Workspace -->
+  <div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
+
+    <!-- Left: Video Call Screen -->
+    <div class="xl:col-span-3 space-y-4">
+      <div class="video-container">
+        
+        <!-- Patient Screen Simulation -->
+        <div class="absolute inset-0 w-full h-full flex items-center justify-center bg-slate-950">
+          <!-- Simulation Profile image placeholder or static webcam stream -->
+          <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-6 bg-cover bg-center" style="background-image: linear-gradient(rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.95)), url('{% if appointment.patient.user.profile_picture %}{{ appointment.patient.user.profile_picture.url }}{% endif %}');">
+            {% if not appointment.patient.user.profile_picture %}
+              <div class="h-28 w-28 rounded-full bg-slate-800 border-4 border-slate-700 text-slate-350 text-4xl font-bold flex items-center justify-center mb-4">
+                {{ appointment.patient.user.first_name|slice:":1" }}{{ appointment.patient.user.last_name|slice:":1" }}
+              </div>
+            {% endif %}
+            <h3 class="text-lg font-bold text-white">{{ appointment.patient.user.get_full_name }}</h3>
+            <p class="text-xs text-slate-400 mt-1">Connecting to patient's media stream...</p>
+            <div class="mt-4 flex gap-1.5 items-center justify-center">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce"></span>
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce [animation-delay:0.2s]"></span>
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce [animation-delay:0.4s]"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Small Local Doctor Video Feed Overlay -->
+        <div class="local-stream">
+          <div class="absolute inset-0 bg-slate-900 flex flex-col items-center justify-center text-center">
+            <span class="text-[10px] font-bold text-slate-400">You (Doctor Feed)</span>
+            <div class="h-8 w-8 rounded-full bg-emerald-700 text-white font-bold text-xs flex items-center justify-center mt-1">
+              DR
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Controls Overlay -->
+        <div class="absolute bottom-6 left-0 right-0 z-30 flex items-center justify-center gap-4">
+          <button id="btn-audio" onclick="toggleAudio()" class="control-button active-success" title="Mute Audio">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+            </svg>
+          </button>
+          
+          <button id="btn-video" onclick="toggleVideo()" class="control-button active-success" title="Mute Video">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+            </svg>
+          </button>
+
+          <button onclick="shareScreen()" class="control-button" title="Share Screen">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+            </svg>
+          </button>
+          
+          <a href="{% url 'doctor_write_prescription' appointment.id %}" class="control-button active-danger" title="End Call & Write Prescription">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16 8l2 2m0 0l2-2m-2 2l-2-2m2 2l2 2M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zm0 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5z"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Context panel (Patient history & Prescription shorthand) -->
+    <div class="xl:col-span-1 space-y-6">
+      
+      <!-- Patient Information -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3">
+        <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">Consultation Sheet</h2>
+        
+        <div>
+          <p class="text-xs text-slate-400">Patient Name</p>
+          <p class="text-sm font-bold text-slate-900 mt-0.5">{{ appointment.patient.user.get_full_name }}</p>
+        </div>
+        
+        <div>
+          <p class="text-xs text-slate-400">Biological Details</p>
+          <p class="text-xs font-bold text-slate-700 mt-0.5">
+            {{ appointment.patient.get_gender_display }} · {{ appointment.patient.blood_group|default:"O+" }}
+          </p>
+        </div>
+
+        <div>
+          <p class="text-xs text-slate-400">Stated Symptoms</p>
+          <p class="text-xs font-medium text-slate-650 bg-slate-50 border border-slate-100 rounded-xl p-2.5 mt-1 leading-relaxed max-h-[140px] overflow-y-auto">
+            {{ appointment.symptoms|default:"No details entered." }}
+          </p>
+        </div>
+
+        <div class="pt-2">
+          <a href="{% url 'patient_detail' appointment.patient.id %}" target="_blank" class="w-full text-center block rounded-xl border border-slate-200 bg-white hover:bg-slate-50 px-4 py-2.5 text-xs font-bold text-slate-700 transition">
+            📂 View Full Medical File
+          </a>
+        </div>
+      </div>
+
+      <!-- Quick Consultation Forms -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+        <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">Quick Doctor Notes</h2>
+        <div class="space-y-3">
+          <textarea id="temp-notes" rows="4" class="w-full text-xs border border-slate-200 rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-emerald-500 placeholder-slate-450" placeholder="Type temporary clinical notes here... (These are not saved automatically)"></textarea>
+          <button onclick="copyNotes()" class="w-full rounded-xl bg-emerald-600 hover:bg-emerald-500 py-2.5 text-xs font-bold text-white transition shadow-sm">
+            📋 Copy to Clipboard
+          </button>
+        </div>
+      </div>
+      
+    </div>
+
+  </div>
+</div>
+
+<script>
+  let audioEnabled = true;
+  let videoEnabled = true;
+
+  function toggleAudio() {
+    audioEnabled = !audioEnabled;
+    const btn = document.getElementById('btn-audio');
+    if (audioEnabled) {
+      btn.classList.remove('active-danger');
+      btn.classList.add('active-success');
+      btn.setAttribute('title', 'Mute Audio');
+    } else {
+      btn.classList.remove('active-success');
+      btn.classList.add('active-danger');
+      btn.setAttribute('title', 'Unmute Audio');
+    }
+  }
+
+  function toggleVideo() {
+    videoEnabled = !videoEnabled;
+    const btn = document.getElementById('btn-video');
+    if (videoEnabled) {
+      btn.classList.remove('active-danger');
+      btn.classList.add('active-success');
+      btn.setAttribute('title', 'Mute Video');
+    } else {
+      btn.classList.remove('active-success');
+      btn.classList.add('active-danger');
+      btn.setAttribute('title', 'Unmute Video');
+    }
+  }
+
+  function shareScreen() {
+    alert("Screen sharing simulation initiated.");
+  }
+
+  function copyNotes() {
+    const text = document.getElementById('temp-notes').value;
+    navigator.clipboard.writeText(text);
+    alert("Notes copied! You can paste them in the prescription form after the call.");
+  }
+</script>
+{% endblock %}

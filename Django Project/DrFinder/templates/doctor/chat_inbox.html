@@ -1,0 +1,78 @@
+{% extends 'doctor/base_doctor.html' %}
+{% block title %}Patient Inbox Messages — DrFinder{% endblock %}
+
+{% block doctor_content %}
+<div class="max-w-4xl mx-auto space-y-6">
+  
+  <!-- Header -->
+  <div>
+    <h1 class="text-2xl font-extrabold text-slate-900">Patient Messages Inbox 💬</h1>
+    <p class="text-slate-500 text-sm mt-0.5">Secure, direct messaging channel with your consulted patients.</p>
+  </div>
+
+  <!-- Messages List Container -->
+  <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+      <h2 class="text-sm font-bold text-slate-900">Active Conversations</h2>
+      <span class="text-xs text-slate-400 font-medium">All sessions are end-to-end encrypted</span>
+    </div>
+    
+    <div class="divide-y divide-slate-150">
+      {% for chat in chat_list %}
+      <a href="{% url 'doctor_chat_room' chat.patient.user.id %}" class="flex items-center gap-4 px-6 py-5 hover:bg-slate-50/70 transition block">
+        
+        <!-- Patient Pic -->
+        <div class="h-12 w-12 rounded-xl bg-emerald-50 text-emerald-600 font-bold flex items-center justify-center border shrink-0 overflow-hidden relative">
+          {% if chat.patient.user.profile_picture %}
+            <img src="{{ chat.patient.user.profile_picture.url }}" class="h-full w-full object-cover" alt="">
+          {% else %}
+            {{ chat.patient.user.first_name|slice:":1" }}{{ chat.patient.user.last_name|slice:":1" }}
+          {% endif %}
+          
+          <!-- Online status dot simulation -->
+          <span class="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-emerald-500 border-2 border-white"></span>
+        </div>
+
+        <!-- Last Msg Details -->
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center justify-between gap-2">
+            <p class="text-sm font-bold text-slate-900 truncate">{{ chat.patient.user.get_full_name }}</p>
+            {% if chat.last_msg %}
+              <span class="text-[10px] text-slate-400 font-medium">{{ chat.last_msg.timestamp|date:"d M, H:i" }}</span>
+            {% endif %}
+          </div>
+          <p class="text-xs text-slate-500 mt-1 truncate max-w-[500px]">
+            {% if chat.last_msg %}
+              {% if chat.last_msg.sender == request.user %}
+                <span class="font-bold text-slate-400">You: </span>
+              {% endif %}
+              {{ chat.last_msg.message }}
+            {% else %}
+              No messages exchanged yet. Click to start chatting.
+            {% endif %}
+          </p>
+        </div>
+
+        <!-- Right Badges -->
+        <div class="shrink-0 flex items-center gap-2">
+          {% if chat.unread_count > 0 %}
+            <span class="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-600 text-white text-[10px] font-bold ring-4 ring-emerald-100">
+              {{ chat.unread_count }}
+            </span>
+          {% endif %}
+          <svg class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+          </svg>
+        </div>
+      </a>
+      {% empty %}
+      <div class="text-center py-16 text-slate-400">
+        <p class="text-4xl mb-3">💬</p>
+        <p class="text-sm font-bold text-slate-800">Your chat inbox is empty</p>
+        <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">Conversations are initialized once a patient books a consultation slot and undergoes treatment with you.</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

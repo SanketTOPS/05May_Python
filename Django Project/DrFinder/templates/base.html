@@ -1,0 +1,179 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}DrFinder - Doctor Finder & Appointment System{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{% static 'imgs/drfinder_favicon.png' %}">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            200: '#bae0fd',
+                            300: '#7cc8fc',
+                            400: '#38acf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="flex flex-col h-full text-slate-800">
+
+    <!-- Header Navigation -->
+    <header class="sticky top-0 z-50 w-full border-b border-slate-200/80 bg-white/80 backdrop-blur-md">
+        <div class="mx-auto flex max-w-7xl h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center gap-8">
+                <a href="{% url 'home' %}" class="flex items-center gap-2.5 transition hover:opacity-90">
+                    <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 shadow-md shadow-indigo-200">
+                        <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 10.5V20a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-9.5M12 4v16m8-8H4" />
+                        </svg>
+                    </div>
+                    <span class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-600 to-indigo-800 bg-clip-text text-transparent">DrFinder</span>
+                </a>
+                <nav class="hidden md:flex items-center gap-6">
+                    <a href="{% url 'doctor_search' %}" class="text-sm font-medium text-slate-600 transition hover:text-indigo-600">Find Doctors</a>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'dashboard' %}" class="text-sm font-medium text-slate-600 transition hover:text-indigo-600">Dashboard</a>
+                    {% endif %}
+                </nav>
+            </div>
+
+            <div class="flex items-center gap-4">
+                {% if user.is_authenticated %}
+                    <div class="hidden sm:flex flex-col items-end text-right">
+                        <span class="text-xs font-semibold text-indigo-600 uppercase tracking-wider">{{ user.get_role_display }}</span>
+                        <span class="text-sm font-medium text-slate-800">{{ user.get_full_name|default:user.username }}</span>
+                    </div>
+                    
+                    <div class="relative group">
+                        <button class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 hover:ring-2 hover:ring-indigo-500 hover:ring-offset-2 transition overflow-hidden">
+                            {% if user.profile_picture %}
+                                <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}" class="h-full w-full object-cover">
+                            {% else %}
+                                <span class="text-sm font-bold text-slate-600">{{ user.username|slice:":2"|upper }}</span>
+                            {% endif %}
+                        </button>
+                        <!-- Dropdown Menu -->
+                        <div class="absolute right-0 mt-2 w-52 origin-top-right rounded-xl border border-slate-200 bg-white p-1 shadow-lg ring-1 ring-black ring-opacity-5 hidden group-focus-within:block group-hover:block transition">
+                            <a href="{% url 'dashboard' %}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 rounded-lg">Dashboard</a>
+                            <a href="{% url 'profile' %}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 rounded-lg">My Profile</a>
+                            <hr class="my-1 border-slate-100">
+                            <a href="{% url 'login_history' %}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 rounded-lg">📋 Login History</a>
+                            <a href="{% url 'active_sessions' %}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 rounded-lg">🖥️ Active Sessions</a>
+                            <hr class="my-1 border-slate-100">
+                            <form action="{% url 'logout' %}" method="post" class="w-full">
+                                {% csrf_token %}
+                                <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg">Sign Out</button>
+                            </form>
+                        </div>
+                    </div>
+                {% else %}
+                    <a href="{% url 'login' %}" class="text-sm font-semibold text-slate-700 hover:text-indigo-600 transition">Sign In</a>
+                    <a href="{% url 'register_patient' %}" class="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-indigo-100 hover:bg-indigo-500 hover:shadow-lg transition">Get Started</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <!-- Message Alert / Toast Notification Stack -->
+    {% if messages %}
+        <div class="fixed top-20 right-4 z-50 flex flex-col gap-2 max-w-md w-full px-4 sm:px-0">
+            {% for message in messages %}
+                <div class="flex items-center gap-3 p-4 rounded-xl border shadow-xl bg-white transition duration-300 transform translate-x-0 slide-toast {% if message.tags == 'success' %}border-emerald-200 bg-emerald-50 text-emerald-800{% elif message.tags == 'warning' %}border-amber-200 bg-amber-50 text-amber-800{% elif message.tags == 'error' %}border-red-200 bg-red-50 text-red-800{% else %}border-blue-200 bg-blue-50 text-blue-800{% endif %}" id="toast-{{ forloop.counter }}">
+                    <div class="flex-1 text-sm font-medium">{{ message }}</div>
+                    <button onclick="document.getElementById('toast-{{ forloop.counter }}').remove()" class="text-slate-400 hover:text-slate-600 transition">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                </div>
+            {% endfor %}
+        </div>
+        <script>
+            // Auto hide toasts after 5 seconds
+            setTimeout(() => {
+                {% for message in messages %}
+                    const toast = document.getElementById('toast-{{ forloop.counter }}');
+                    if (toast) {
+                        toast.classList.add('opacity-0', 'scale-95');
+                        setTimeout(() => toast.remove(), 300);
+                    }
+                {% endfor %}
+            }, 5000);
+        </script>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main class="flex-1">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-200 bg-white py-12 text-slate-600">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div class="md:col-span-2">
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white font-bold">
+                            +
+                        </div>
+                        <span class="text-lg font-bold tracking-tight text-slate-800">DrFinder</span>
+                    </div>
+                    <p class="text-sm max-w-xs leading-relaxed text-slate-500">Connecting patients with verified local medical practitioners seamlessly. Schedule consultations, manage reports, and access prescriptions securely.</p>
+                </div>
+                <div>
+                    <h3 class="text-xs font-semibold text-slate-800 uppercase tracking-wider mb-4">For Patients</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="{% url 'doctor_search' %}" class="hover:text-indigo-600 transition">Search Doctors</a></li>
+                        <li><a href="{% url 'register_patient' %}" class="hover:text-indigo-600 transition">Register Profile</a></li>
+                        <li><a href="{% url 'login' %}" class="hover:text-indigo-600 transition">Book Appointments</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-xs font-semibold text-slate-800 uppercase tracking-wider mb-4">For Doctors</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="{% url 'register_doctor' %}" class="hover:text-indigo-600 transition">Join as Doctor</a></li>
+                        <li><a href="{% url 'login' %}" class="hover:text-indigo-600 transition">Doctor Portal</a></li>
+                        <li><a href="{% url 'login' %}" class="hover:text-indigo-600 transition">Profile Settings</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-slate-100 mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
+                <span>&copy; {% now "Y" %} DrFinder App. All rights reserved. Developed under Python-Django & MySQL.</span>
+                <div class="flex gap-4">
+                    <a href="#" class="hover:text-indigo-600 transition">Privacy Policy</a>
+                    <a href="#" class="hover:text-indigo-600 transition">Terms of Service</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

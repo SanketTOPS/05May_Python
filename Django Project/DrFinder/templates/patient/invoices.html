@@ -1,0 +1,71 @@
+{% extends 'patient/base_patient.html' %}
+{% block title %}My Invoices — DrFinder{% endblock %}
+
+{% block patient_content %}
+<div class="space-y-6">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-extrabold text-slate-900">Invoices & Billing</h1>
+      <p class="text-slate-500 text-sm mt-1">Review all your consultation payments, wallet transactions, and billing details.</p>
+    </div>
+    <div class="bg-indigo-50 border border-indigo-100 rounded-xl px-4 py-2.5 text-right shrink-0">
+      <p class="text-xs text-indigo-600 font-semibold uppercase tracking-wider">Total Health Spend</p>
+      <p class="text-lg font-black text-indigo-900">₹{{ total_spent|floatformat:2 }}</p>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+    <table class="min-w-full divide-y divide-slate-200 text-left text-sm">
+      <thead class="bg-slate-50 text-slate-500 text-xs uppercase font-semibold tracking-wider">
+        <tr>
+          <th class="px-5 py-4">Transaction ID</th>
+          <th class="px-5 py-4">Doctor / Purpose</th>
+          <th class="px-5 py-4">Amount</th>
+          <th class="px-5 py-4">Date & Time</th>
+          <th class="px-5 py-4">Status</th>
+          <th class="px-5 py-4">Receipt</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        {% for payment in payments %}
+        <tr class="hover:bg-slate-50 transition">
+          <td class="px-5 py-4 text-slate-500 font-mono font-semibold">{{ payment.transaction_id }}</td>
+          <td class="px-5 py-4">
+            <div class="font-bold text-slate-950">Dr. {{ payment.appointment.doctor.user.get_full_name }}</div>
+            <div class="text-xs text-slate-400">Consultation Fee</div>
+          </td>
+          <td class="px-5 py-4 font-bold text-slate-900">₹{{ payment.amount|floatformat:2 }}</td>
+          <td class="px-5 py-4 text-slate-500">{{ payment.timestamp|date:"d M Y, h:i A" }}</td>
+          <td class="px-5 py-4">
+            {% if payment.status == 'SUCCESS' %}
+              <span class="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700 ring-1 ring-emerald-600/20">Success</span>
+            {% elif payment.status == 'PENDING' %}
+              <span class="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-bold text-amber-700 ring-1 ring-amber-600/20">Pending</span>
+            {% else %}
+              <span class="inline-flex items-center rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-bold text-red-700 ring-1 ring-red-600/20">Failed</span>
+            {% endif %}
+          </td>
+          <td class="px-5 py-4">
+            {% if payment.status == 'SUCCESS' %}
+              <a href="{% url 'payment_receipt' payment.id %}"
+                 class="text-xs font-bold text-indigo-600 hover:underline">
+                Receipt
+              </a>
+            {% else %}
+              <span class="text-slate-300">-</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="px-5 py-12 text-center text-slate-400">
+            <p class="text-3xl mb-2">🧾</p>
+            <p class="font-medium">No invoices found.</p>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

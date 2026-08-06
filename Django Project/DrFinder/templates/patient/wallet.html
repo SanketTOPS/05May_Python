@@ -1,0 +1,98 @@
+{% extends 'patient/base_patient.html' %}
+{% block title %}My Wallet — DrFinder{% endblock %}
+
+{% block patient_content %}
+<div class="space-y-6">
+  <div>
+    <h1 class="text-2xl font-extrabold text-slate-900">Wallet Portal</h1>
+    <p class="text-slate-500 text-sm mt-1">Manage your in-app wallet balance and view your wallet transaction log.</p>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- Left Column: Balance & Top-Up -->
+    <div class="space-y-5">
+      <!-- Balance Card -->
+      <div class="bg-gradient-to-br from-indigo-600 to-indigo-850 rounded-2xl p-6 text-white shadow-xl shadow-indigo-100 relative overflow-hidden bg-indigo-600">
+        <div class="absolute -top-6 -right-6 h-24 w-24 rounded-full bg-white/10"></div>
+        <div class="relative">
+          <p class="text-indigo-200 text-xs font-bold uppercase tracking-wider">Available Balance</p>
+          <h2 class="text-3xl font-black mt-2">₹{{ wallet.balance|floatformat:2 }}</h2>
+          <p class="text-xs text-indigo-200/80 mt-1">Use this balance for booking instant appointments.</p>
+        </div>
+      </div>
+
+      <!-- Top-Up Form -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+        <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4">Add Balance</h2>
+        <form method="post" class="space-y-4">
+          {% csrf_token %}
+          <div class="space-y-2">
+            <p class="text-xs font-semibold text-slate-500">Select Amount</p>
+            <div class="grid grid-cols-2 gap-2">
+              {% for choice in form.amount.field.choices %}
+              <label class="border border-slate-200 hover:border-indigo-500 rounded-xl p-3 text-center cursor-pointer transition flex items-center justify-center font-bold text-sm text-slate-700 hover:bg-slate-50 relative">
+                <input type="radio" name="amount" value="{{ choice.0 }}" class="absolute opacity-0 pointer-events-none" {% if forloop.first %}checked{% endif %}>
+                {{ choice.1 }}
+              </label>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1">Or Custom Amount (₹)</label>
+            {{ form.custom_amount }}
+          </div>
+
+          <button type="submit" class="w-full rounded-xl bg-indigo-600 py-2.5 text-sm font-bold text-white hover:bg-indigo-500 transition shadow-md">
+            💳 Proceed to Add Money
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Right Column: Transactions -->
+    <div class="lg:col-span-2">
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full min-h-[400px]">
+        <div class="px-5 py-4 border-b border-slate-100">
+          <h2 class="text-sm font-bold text-slate-900">Wallet Transaction Log</h2>
+        </div>
+        <div class="divide-y divide-slate-100 flex-1 overflow-y-auto max-h-[500px]">
+          {% for tx in transactions %}
+          <div class="px-5 py-4 flex items-center justify-between hover:bg-slate-50 transition">
+            <div class="flex items-center gap-3">
+              <div class="h-10 w-10 rounded-xl flex items-center justify-center font-bold text-lg
+                {% if tx.transaction_type == 'CREDIT' %}bg-emerald-50 text-emerald-600{% else %}bg-red-50 text-red-600{% endif %}">
+                {% if tx.transaction_type == 'CREDIT' %}+{% else %}-{% endif %}
+              </div>
+              <div>
+                <p class="text-sm font-bold text-slate-900">{{ tx.description }}</p>
+                <p class="text-xs text-slate-400 font-mono">{{ tx.reference|default:"-" }} · {{ tx.created_at|date:"d M Y, h:i A" }}</p>
+              </div>
+            </div>
+            <span class="font-extrabold text-sm {% if tx.transaction_type == 'CREDIT' %}text-emerald-600{% else %}text-red-500{% endif %}">
+              {% if tx.transaction_type == 'CREDIT' %}+{% else %}-{% endif %}₹{{ tx.amount }}
+            </span>
+          </div>
+          {% empty %}
+          <div class="flex flex-col items-center justify-center h-full p-12 text-slate-400 text-center">
+            <p class="text-3xl mb-2">💳</p>
+            <p class="text-sm font-medium">No wallet transactions found.</p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<style>
+  input[type="number"] {
+    width: 100%; border: 1px solid #e2e8f0; border-radius: 10px; padding: 9px 12px; font-size: 0.875rem; color: #1e293b; outline: none;
+  }
+  input[type="number"]:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, .1); }
+  label input:checked + span, label:has(input:checked) {
+    border-color: #6366f1; background-color: #f5f3ff; color: #4f46e5;
+  }
+</style>
+{% endblock %}

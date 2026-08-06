@@ -1,0 +1,104 @@
+{% extends 'doctor/base_doctor.html' %}
+{% block title %}Practice Analytics & Insights — DrFinder{% endblock %}
+
+{% block doctor_content %}
+<div class="space-y-6">
+  
+  <!-- Header -->
+  <div>
+    <h1 class="text-2xl font-extrabold text-slate-900">Practice Insights & Analytics 📈</h1>
+    <p class="text-slate-500 text-sm mt-0.5">Statistical metrics regarding your patients, consultation trends, and traffic.</p>
+  </div>
+
+  <!-- Key Metrics row -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex items-center justify-between">
+      <div>
+        <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Completed Consultations</p>
+        <p class="text-4xl font-extrabold text-slate-950 mt-1.5">{{ consultations_count }}</p>
+      </div>
+      <span class="text-3xl">👥</span>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex items-center justify-between">
+      <div>
+        <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Cancelled Appointments</p>
+        <p class="text-4xl font-extrabold text-slate-950 mt-1.5">{{ cancellations_count }}</p>
+      </div>
+      <span class="text-3xl">⚠️</span>
+    </div>
+  </div>
+
+  <!-- Visual Breakdowns -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    
+    <!-- Gender Demographics -->
+    <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+      <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+        <span>🚻</span> Patient Gender Distribution
+      </h2>
+      <p class="text-xs text-slate-400">Breakdown of consulted patients based on biological gender.</p>
+      
+      <div class="space-y-4 pt-2">
+        {% for gender in gender_stats %}
+        <div class="space-y-1.5">
+          <div class="flex justify-between text-xs font-bold text-slate-700">
+            <span>
+              {% if gender.patient__gender == 'MALE' %}Male ♂️
+              {% elif gender.patient__gender == 'FEMALE' %}Female ♀️
+              {% else %}Other / Unspecified ⚧️{% endif %}
+            </span>
+            <span>{{ gender.count }} Patient{{ gender.count|pluralize }}</span>
+          </div>
+          <!-- Bar container -->
+          <div class="w-full bg-slate-100 rounded-full h-2">
+            <div class="bg-emerald-600 h-2 rounded-full" style="width: {% widthratio gender.count consultations_count 100 %}%"></div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-10 text-slate-400 text-xs font-semibold">
+          No gender demographics recorded yet.
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Weekday Engagement Traffic -->
+    <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+      <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+        <span>📅</span> Weekly Consultation Traffic
+      </h2>
+      <p class="text-xs text-slate-400">Engagement density based on the weekday of the consultations.</p>
+      
+      <div class="space-y-4 pt-2">
+        {% for day in weekday_stats %}
+        <div class="space-y-1.5">
+          <div class="flex justify-between text-xs font-bold text-slate-700">
+            <span>
+              {% if day.slot__date__week_day == 1 %}Sunday
+              {% elif day.slot__date__week_day == 2 %}Monday
+              {% elif day.slot__date__week_day == 3 %}Tuesday
+              {% elif day.slot__date__week_day == 4 %}Wednesday
+              {% elif day.slot__date__week_day == 5 %}Thursday
+              {% elif day.slot__date__week_day == 6 %}Friday
+              {% elif day.slot__date__week_day == 7 %}Saturday
+              {% endif %}
+            </span>
+            <span>{{ day.count }} Booking{{ day.count|pluralize }}</span>
+          </div>
+          <!-- Bar container -->
+          <div class="w-full bg-slate-100 rounded-full h-2">
+            <div class="bg-indigo-650 h-2 rounded-full" style="width: {% widthratio day.count consultations_count 100 %}%"></div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-10 text-slate-400 text-xs font-semibold">
+          No weekly traffic metrics recorded yet.
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

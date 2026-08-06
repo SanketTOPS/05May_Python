@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block title %}DrFinder - Payment Receipt{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-2xl px-4 py-16 sm:px-6 lg:px-8 bg-slate-50 min-h-[70vh] flex flex-col justify-center">
+    
+    <!-- Success Banner -->
+    <div class="bg-white border border-slate-200 shadow-xl rounded-3xl p-6 sm:p-10 text-center relative overflow-hidden" id="printable-receipt">
+        <div class="absolute inset-x-0 top-0 h-2 bg-gradient-to-r from-emerald-400 to-teal-500"></div>
+
+        <!-- Success Check Icon -->
+        <div class="h-20 w-20 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center text-4xl mx-auto mb-6 shadow-inner">
+            ✓
+        </div>
+
+        <span class="text-xs font-bold uppercase tracking-wider text-emerald-600 block mb-1">Payment Successful</span>
+        <h2 class="text-2xl font-extrabold text-slate-900">Consultation Invoice</h2>
+        <p class="text-xs text-slate-400 mt-1">Transaction ID: {{ payment.transaction_id }}</p>
+
+        <!-- Receipt items -->
+        <div class="mt-8 border-t border-slate-100 pt-6 space-y-4 text-left text-sm">
+            <div class="flex justify-between items-center pb-2 border-b border-slate-50">
+                <span class="text-slate-400 font-semibold">Doctor Name</span>
+                <span class="font-bold text-slate-900">Dr. {{ payment.appointment.doctor.user.get_full_name }}</span>
+            </div>
+            <div class="flex justify-between items-center pb-2 border-b border-slate-50">
+                <span class="text-slate-400 font-semibold">Specialization</span>
+                <span class="font-bold text-indigo-600">{{ payment.appointment.doctor.get_specialization_display }}</span>
+            </div>
+            <div class="flex justify-between items-center pb-2 border-b border-slate-50">
+                <span class="text-slate-400 font-semibold">Patient Name</span>
+                <span class="font-bold text-slate-900">{{ payment.appointment.patient.user.get_full_name }}</span>
+            </div>
+            <div class="flex justify-between items-center pb-2 border-b border-slate-50">
+                <span class="text-slate-400 font-semibold">Appointment Time</span>
+                <span class="font-bold text-slate-800 text-right">{{ payment.appointment.slot.date|date:"F d, Y" }} at {{ payment.appointment.slot.start_time|time:"H:i" }}</span>
+            </div>
+            <div class="flex justify-between items-center pb-2 border-b border-slate-50">
+                <span class="text-slate-400 font-semibold">Payment Method</span>
+                <span class="font-bold text-slate-800 uppercase">{{ payment.formatted_payment_method }}</span>
+            </div>
+            {% if payment.razorpay_payment_id %}
+            <div class="flex justify-between items-center pb-2 border-b border-slate-50">
+                <span class="text-slate-400 font-semibold">Razorpay Payment ID</span>
+                <span class="font-bold text-blue-600 text-xs font-mono">{{ payment.razorpay_payment_id }}</span>
+            </div>
+            {% endif %}
+            <div class="flex justify-between items-center pb-2 border-b border-slate-50">
+                <span class="text-slate-400 font-semibold">Date of Payment</span>
+                <span class="font-bold text-slate-800">{{ payment.timestamp|date:"d M Y, H:i" }}</span>
+            </div>
+            
+            <div class="flex justify-between items-center pt-4 text-base">
+                <span class="text-slate-900 font-bold">Total Consultation Fee</span>
+                <span class="text-2xl font-extrabold text-slate-900">₹{{ payment.amount }}</span>
+            </div>
+        </div>
+
+        <!-- Receipt buttons -->
+        <div class="mt-10 pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-center gap-4 no-print">
+            <button onclick="window.print()" class="w-full sm:w-auto px-5 py-2.5 border border-slate-300 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 transition flex items-center justify-center gap-1.5">
+                🖨️ Print Invoice
+            </button>
+            <a href="{% url 'dashboard' %}" class="w-full sm:w-auto px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-sm font-bold text-white shadow-md transition">
+                Go to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+        #printable-receipt, #printable-receipt * {
+            visibility: visible;
+        }
+        #printable-receipt {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            border: none;
+            box-shadow: none;
+        }
+        .no-print {
+            display: none !important;
+        }
+    }
+</style>
+{% endblock %}

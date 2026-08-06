@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<style>
+  .sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 14px;
+    border-radius: 10px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #475569;
+    transition: all 0.15s ease;
+    text-decoration: none;
+  }
+  .sidebar-link:hover {
+    background-color: #f0fdf4;
+    color: #16a34a;
+  }
+  .sidebar-link.active {
+    background-color: #16a34a;
+    color: #ffffff;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(22,163,74,0.25);
+  }
+  .sidebar-link.active svg, .sidebar-link.active span {
+    color: #ffffff;
+  }
+  .sidebar-group-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #94a3b8;
+    text-transform: uppercase;
+    padding: 0 14px;
+    margin-top: 16px;
+    margin-bottom: 4px;
+  }
+  .doctor-content { animation: fadeUp 0.3s ease; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="flex min-h-screen bg-slate-50">
+
+  <!-- ── Sidebar ─────────────────────────────────────────────────────────── -->
+  <aside class="hidden lg:flex flex-col w-64 shrink-0 bg-white border-r border-slate-200 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto shadow-sm">
+
+    <!-- Doctor Profile -->
+    <div class="p-5 border-b border-slate-100 flex flex-col gap-2">
+      <div class="flex items-center gap-3">
+        <div class="h-11 w-11 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold text-sm overflow-hidden shrink-0">
+          {% if request.user.profile_picture %}
+            <img src="{{ request.user.profile_picture.url }}" class="h-full w-full object-cover" alt="">
+          {% else %}
+            DR
+          {% endif %}
+        </div>
+        <div class="overflow-hidden">
+          <p class="text-sm font-bold text-slate-900 truncate">Dr. {{ request.user.get_full_name|default:request.user.username }}</p>
+          <p class="text-xs text-emerald-600 font-semibold">Doctor Portal</p>
+        </div>
+      </div>
+
+      <!-- Verification Badge -->
+      {% if doctor.status == 'APPROVED' %}
+        <span class="inline-flex self-start items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 ring-1 ring-emerald-600/20">✓ Verified Profile</span>
+      {% elif doctor.status == 'PENDING' %}
+        <span class="inline-flex self-start items-center rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700 ring-1 ring-amber-600/20">⏳ Pending Approval</span>
+      {% else %}
+        <span class="inline-flex self-start items-center rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-bold text-red-700 ring-1 ring-red-600/20">✕ Suspended</span>
+      {% endif %}
+    </div>
+
+    <!-- Nav Links -->
+    <nav class="p-3 flex-1 space-y-0.5">
+
+      <!-- Operations -->
+      <p class="sidebar-group-label">Operations</p>
+      <a href="{% url 'doctor_dashboard' %}" class="sidebar-link {% if active_tab == 'dashboard' %}active{% endif %}">
+        <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </a>
+      <a href="{% url 'doctor_profile' %}" class="sidebar-link {% if active_tab == 'profile' %}active{% endif %}">
+        <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+        Profile & Qualifications
+      </a>
+
+      <!-- Schedule -->
+      <p class="sidebar-group-label">Scheduler</p>
+      <a href="{% url 'availability_schedule' %}" class="sidebar-link {% if active_tab == 'schedule' %}active{% endif %}">
+        <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        Manage Availability Slots
+      </a>
+      <a href="{% url 'leave_management' %}" class="sidebar-link {% if active_tab == 'leave' %}active{% endif %}">
+        <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        Leave Planner
+      </a>
+
+      <!-- Patients -->
+      <p class="sidebar-group-label">Patients & Care</p>
+      <a href="{% url 'appointment_management' %}" class="sidebar-link {% if active_tab == 'appointments' %}active{% endif %}">
+        <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        Appointments Manager
+      </a>
+      <a href="{% url 'patient_history' %}" class="sidebar-link {% if active_tab == 'patients' %}active{% endif %}">
+        <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        Patient History
+      </a>
+
+      <!-- Communications -->
+      <p class="sidebar-group-label">Messaging & Calls</p>
+      <a href="{% url 'doctor_chat_inbox' %}" class="sidebar-link {% if active_tab == 'chat' %}active{% endif %}">
+        <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+        Messenger Chat
+        {% if unread_chats > 0 %}
+          <span class="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white text-xs font-bold">{{ unread_chats }}</span>
+        {% endif %}
+      </a>
+
+      <!-- Accounts -->
+      <p class="sidebar-group-label">Finance & Insights</p>
+      <a href="{% url 'revenue_dashboard' %}" class="sidebar-link {% if active_tab == 'revenue' %}active{% endif %}">
+        <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M12 14a2 2 0 110-4h2"/></svg>
+        Revenue Dashboard
+      </a>
+      <a href="{% url 'doctor_payment_history' %}" class="sidebar-link {% if active_tab == 'payments' %}active{% endif %}">
+        <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        Payment Logs
+      </a>
+      <a href="{% url 'doctor_analytics' %}" class="sidebar-link {% if active_tab == 'analytics' %}active{% endif %}">
+        <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 3.055A9.003 9.003 0 1020.945 13H11V3.055z"/><path stroke-linecap="round" stroke-linejoin="round" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/></svg>
+        Analytics Insights
+      </a>
+
+    </nav>
+
+    <!-- Sign Out -->
+    <div class="p-3 border-t border-slate-100">
+      <form action="{% url 'logout' %}" method="post">
+        {% csrf_token %}
+        <button type="submit" class="sidebar-link w-full text-red-500 hover:bg-red-50 hover:text-red-600">
+          <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+          Sign Out
+        </button>
+      </form>
+    </div>
+  </aside>
+
+  <!-- ── Mobile Menu Trigger ─────────────────────────────────────────────── -->
+  <div class="lg:hidden fixed bottom-4 right-4 z-50">
+    <button onclick="document.getElementById('mobile-sidebar').classList.toggle('hidden')"
+      class="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-600 text-white shadow-lg hover:bg-emerald-500 transition">
+      <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+  </div>
+  <div id="mobile-sidebar" class="hidden lg:hidden fixed inset-0 z-40 bg-black/40" onclick="this.classList.add('hidden')">
+    <div class="w-64 h-full bg-white overflow-y-auto shadow-xl" onclick="event.stopPropagation()">
+      <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+        <span class="font-bold text-slate-900">Doctor Portal Menu</span>
+        <button onclick="document.getElementById('mobile-sidebar').classList.add('hidden')" class="text-slate-400 hover:text-slate-600">✕</button>
+      </div>
+      <nav class="p-3 space-y-0.5">
+        <a href="{% url 'doctor_dashboard' %}" class="sidebar-link {% if active_tab == 'dashboard' %}active{% endif %}">📊 Dashboard</a>
+        <a href="{% url 'doctor_profile' %}" class="sidebar-link {% if active_tab == 'profile' %}active{% endif %}">👤 Profile & Credentials</a>
+        <a href="{% url 'availability_schedule' %}" class="sidebar-link {% if active_tab == 'schedule' %}active{% endif %}">📅 Availability Slots</a>
+        <a href="{% url 'leave_management' %}" class="sidebar-link {% if active_tab == 'leave' %}active{% endif %}">❌ Leave Planner</a>
+        <a href="{% url 'appointment_management' %}" class="sidebar-link {% if active_tab == 'appointments' %}active{% endif %}">💼 Appointments</a>
+        <a href="{% url 'patient_history' %}" class="sidebar-link {% if active_tab == 'patients' %}active{% endif %}">👨‍⚕️ Patients History</a>
+        <a href="{% url 'doctor_chat_inbox' %}" class="sidebar-link {% if active_tab == 'chat' %}active{% endif %}">💬 Private Chat</a>
+        <a href="{% url 'revenue_dashboard' %}" class="sidebar-link {% if active_tab == 'revenue' %}active{% endif %}">💰 Revenue</a>
+        <a href="{% url 'doctor_payment_history' %}" class="sidebar-link {% if active_tab == 'payments' %}active{% endif %}">🧾 Payments Log</a>
+        <a href="{% url 'doctor_analytics' %}" class="sidebar-link {% if active_tab == 'analytics' %}active{% endif %}">📈 Analytics</a>
+      </nav>
+    </div>
+  </div>
+
+  <!-- ── Main Content ────────────────────────────────────────────────────── -->
+  <main class="flex-1 min-w-0 p-6 lg:p-8 doctor-content">
+    {% block doctor_content %}{% endblock %}
+  </main>
+
+</div>
+{% endblock %}

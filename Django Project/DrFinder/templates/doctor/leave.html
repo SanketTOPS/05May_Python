@@ -1,0 +1,85 @@
+{% extends 'doctor/base_doctor.html' %}
+{% block title %}Leave Planner — DrFinder{% endblock %}
+
+{% block doctor_content %}
+<div class="space-y-6">
+  <div>
+    <h1 class="text-2xl font-extrabold text-slate-900">Leave Planner</h1>
+    <p class="text-slate-500 text-sm mt-0.5">Schedule leaves to block patient bookings and clear availability slots during dates you are out of practice.</p>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- Leave Application Form -->
+    <div class="lg:col-span-1">
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sticky top-20">
+        <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4">Request Leave</h2>
+        <form method="post" class="space-y-3">
+          {% csrf_token %}
+          {% for field in form %}
+          <div>
+            <label class="block text-xs font-semibold text-slate-655 mb-1">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}<p class="text-xs text-red-500 mt-0.5">{{ field.errors|join:", " }}</p>{% endif %}
+          </div>
+          {% endfor %}
+          <button type="submit" class="w-full rounded-xl bg-emerald-600 py-2.5 text-sm font-bold text-white hover:bg-emerald-500 transition shadow-md mt-2">
+            🌴 Apply Leave
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Leaves List -->
+    <div class="lg:col-span-2">
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full min-h-[400px]">
+        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+          <h2 class="text-sm font-bold text-slate-900">Scheduled Leaves ({{ leaves.count }})</h2>
+        </div>
+        <div class="divide-y divide-slate-100 flex-1 overflow-y-auto max-h-[500px]">
+          {% for leave in leaves %}
+          <div class="px-6 py-4 flex items-center justify-between hover:bg-slate-50 transition">
+            <div class="flex items-center gap-3">
+              <div class="h-10 w-10 rounded-xl bg-red-50 text-red-500 font-bold flex items-center justify-center text-sm shrink-0 border border-red-100">
+                🌴
+              </div>
+              <div>
+                <p class="text-sm font-bold text-slate-950">
+                  {{ leave.start_date|date:"d M Y" }} – {{ leave.end_date|date:"d M Y" }}
+                </p>
+                <p class="text-xs text-slate-500 mt-0.5">Reason: {{ leave.reason }}</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              {% if leave.is_active %}
+                <span class="inline-flex items-center rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-bold text-red-700 ring-1 ring-red-650/20">Active Now</span>
+              {% elif leave.is_upcoming %}
+                <span class="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-bold text-amber-700 ring-1 ring-amber-650/20">Upcoming</span>
+              {% endif %}
+              <form action="{% url 'delete_leave' leave.id %}" method="post" onsubmit="return confirm('Cancel this leave entry?')">
+                {% csrf_token %}
+                <button type="submit" class="rounded-lg border border-red-200 text-red-500 text-xs font-bold px-2 py-1 hover:bg-red-50 transition">
+                  Cancel
+                </button>
+              </form>
+            </div>
+          </div>
+          {% empty %}
+          <div class="flex flex-col items-center justify-center h-full p-12 text-slate-400 text-center">
+            <p class="text-3xl mb-2">🌴</p>
+            <p class="text-sm font-medium">No leave records registered.</p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<style>
+  input[type="date"], textarea {
+    width: 100%; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px 12px; font-size: 0.875rem; color: #1e293b; outline: none; background: #fff;
+  }
+  input:focus, textarea:focus { border-color: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,.1); }
+</style>
+{% endblock %}

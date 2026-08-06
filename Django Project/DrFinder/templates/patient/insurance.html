@@ -1,0 +1,79 @@
+{% extends 'patient/base_patient.html' %}
+{% block title %}Insurance Information — DrFinder{% endblock %}
+
+{% block patient_content %}
+<div class="max-w-2xl space-y-6">
+  <div>
+    <h1 class="text-2xl font-extrabold text-slate-900">Insurance Information</h1>
+    <p class="text-slate-500 text-sm mt-1">Keep your health insurance details on hand for doctor visits.</p>
+  </div>
+
+  {% if insurance %}
+  <!-- Current Insurance Card -->
+  <div class="bg-gradient-to-br from-indigo-600 to-indigo-800 rounded-2xl p-6 text-white shadow-xl shadow-indigo-200 relative overflow-hidden">
+    <div class="absolute -top-8 -right-8 h-32 w-32 rounded-full bg-white/10"></div>
+    <div class="absolute -bottom-6 -left-6 h-24 w-24 rounded-full bg-white/5"></div>
+    <div class="relative">
+      <div class="flex items-center justify-between mb-4">
+        <p class="text-indigo-200 text-xs font-bold uppercase tracking-wider">Health Insurance</p>
+        {% if insurance.is_expired %}
+          <span class="bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">⚠️ Expired</span>
+        {% elif insurance.days_until_expiry <= 30 %}
+          <span class="bg-amber-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">Expires in {{ insurance.days_until_expiry }} days</span>
+        {% else %}
+          <span class="bg-emerald-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">✓ Active</span>
+        {% endif %}
+      </div>
+      <h2 class="text-xl font-extrabold mb-1">{{ insurance.provider_name }}</h2>
+      <p class="text-indigo-200 text-sm font-mono tracking-widest">{{ insurance.policy_number }}</p>
+      <div class="mt-4 grid grid-cols-3 gap-4 text-xs">
+        <div>
+          <p class="text-indigo-300 font-semibold">Plan Type</p>
+          <p class="font-bold mt-0.5">{{ insurance.get_plan_type_display }}</p>
+        </div>
+        <div>
+          <p class="text-indigo-300 font-semibold">Coverage</p>
+          <p class="font-bold mt-0.5">{% if insurance.coverage_amount %}₹{{ insurance.coverage_amount|floatformat:0 }}{% else %}N/A{% endif %}</p>
+        </div>
+        <div>
+          <p class="text-indigo-300 font-semibold">Expiry</p>
+          <p class="font-bold mt-0.5">{{ insurance.expiry_date|date:"d M Y" }}</p>
+        </div>
+      </div>
+      <div class="mt-4 pt-4 border-t border-white/20">
+        <p class="text-indigo-300 text-xs font-semibold">Policyholder</p>
+        <p class="font-bold">{{ insurance.holder_name }}</p>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Form -->
+  <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+    <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4">
+      {% if insurance %}Update Insurance{% else %}Add Insurance{% endif %}
+    </h2>
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {% for field in form %}
+        <div class="{% if field.name == 'notes' %}sm:col-span-2{% endif %}">
+          <label class="block text-xs font-semibold text-slate-600 mb-1">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}<p class="text-xs text-red-500 mt-0.5">{{ field.errors|join:", " }}</p>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      <button type="submit" class="rounded-xl bg-indigo-600 px-6 py-2.5 text-sm font-bold text-white hover:bg-indigo-500 transition shadow-md">
+        🛡️ {% if insurance %}Update{% else %}Save{% endif %} Insurance
+      </button>
+    </form>
+  </div>
+</div>
+<style>
+  input[type="text"], input[type="number"], input[type="date"], select, textarea {
+    width:100%; border:1px solid #e2e8f0; border-radius:10px; padding:9px 12px; font-size:0.875rem; color:#1e293b; outline:none;
+  }
+  input:focus, select:focus, textarea:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.1); }
+</style>
+{% endblock %}

@@ -1,0 +1,120 @@
+{% extends 'doctor/base_doctor.html' %}
+{% block title %}Doctor Dashboard — DrFinder{% endblock %}
+
+{% block doctor_content %}
+<div class="space-y-6">
+
+  <!-- Verification Alert -->
+  {% if pending_approval %}
+  <div class="bg-amber-50 border-l-4 border-amber-500 rounded-xl p-5 shadow-sm flex items-start gap-4">
+    <div class="text-2xl">⏳</div>
+    <div>
+      <h3 class="text-sm font-bold text-amber-800">Your profile is pending admin approval</h3>
+      <p class="text-xs text-amber-700 mt-1 leading-relaxed">Before you can accept bookings or configure availability slots, our administration team must review and verify your license certificates. This process usually takes 24-48 hours.</p>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Welcome Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-extrabold text-slate-900">Dr. {{ request.user.first_name|default:request.user.username }}'s Dashboard 🩺</h1>
+      <p class="text-slate-500 text-sm mt-0.5">Welcome back to your practice analytics and schedule planner.</p>
+    </div>
+    <a href="{% url 'availability_schedule' %}" class="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-emerald-500 transition shadow-md shrink-0">
+      📅 Manage Calendar
+    </a>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition">
+      <div class="flex items-center gap-3">
+        <div class="h-10 w-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 text-lg">💼</div>
+        <div>
+          <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Bookings</p>
+          <p class="text-2xl font-extrabold text-slate-900">{{ total_appointments }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition">
+      <div class="flex items-center gap-3">
+        <div class="h-10 w-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 text-lg">⏳</div>
+        <div>
+          <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Pending</p>
+          <p class="text-2xl font-extrabold text-slate-900">{{ pending_appointments }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition">
+      <div class="flex items-center gap-3">
+        <div class="h-10 w-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-650 text-lg">💰</div>
+        <div>
+          <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Earnings</p>
+          <p class="text-2xl font-extrabold text-slate-900">₹{{ total_earnings|floatformat:0 }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition">
+      <div class="flex items-center gap-3">
+        <div class="h-10 w-10 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600 text-lg">🗓️</div>
+        <div>
+          <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Active Slots</p>
+          <p class="text-2xl font-extrabold text-slate-900">{{ active_slots_count }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- Appointments Queue -->
+    <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between min-h-[300px]">
+      <div>
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+          <h2 class="text-sm font-bold text-slate-900">Upcoming Consultations Queue</h2>
+          <a href="{% url 'appointment_management' %}" class="text-xs text-emerald-600 font-semibold hover:underline">View all →</a>
+        </div>
+        <div class="divide-y divide-slate-100">
+          {% for appt in upcoming_appointments %}
+          <div class="flex items-center gap-4 px-6 py-4">
+            <div class="h-11 w-11 rounded-xl bg-emerald-50 text-emerald-600 font-bold flex items-center justify-center border shrink-0 overflow-hidden">
+              {% if appt.patient.user.profile_picture %}
+                <img src="{{ appt.patient.user.profile_picture.url }}" class="h-full w-full object-cover" alt="">
+              {% else %}PT{% endif %}
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-bold text-slate-900 truncate">{{ appt.patient.user.get_full_name }}</p>
+              <p class="text-xs text-slate-500">📅 {{ appt.slot.date|date:"d M Y" }} · ⏰ {{ appt.slot.start_time|time:"H:i" }}</p>
+            </div>
+            <div class="flex gap-2">
+              <a href="{% url 'video_consultation' appt.id %}" class="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-indigo-500 transition">Video Call</a>
+              <a href="{% url 'doctor_write_prescription' appt.id %}" class="rounded-lg border border-slate-200 text-slate-600 text-xs font-bold px-3 py-1.5 hover:bg-slate-50 transition">Prescribe</a>
+            </div>
+          </div>
+          {% empty %}
+          <div class="text-center py-12 text-slate-400">
+            <p class="text-3xl mb-2">📋</p>
+            <p class="text-sm font-medium">No consultations in queue for today.</p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Side: Navigation Panel -->
+    <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col justify-between">
+      <div>
+        <h2 class="text-sm font-bold text-slate-900 mb-3">Quick Navigation Tools</h2>
+        <div class="grid grid-cols-2 gap-2 text-center text-xs font-bold text-slate-700">
+          <a href="{% url 'doctor_chat_inbox' %}" class="flex flex-col items-center gap-1.5 p-3.5 rounded-xl bg-slate-50 hover:bg-emerald-50 hover:text-emerald-700 transition">💬 Chats</a>
+          <a href="{% url 'patient_history' %}" class="flex flex-col items-center gap-1.5 p-3.5 rounded-xl bg-slate-50 hover:bg-emerald-50 hover:text-emerald-700 transition">👨‍⚕️ Patients</a>
+          <a href="{% url 'revenue_dashboard' %}" class="flex flex-col items-center gap-1.5 p-3.5 rounded-xl bg-slate-50 hover:bg-emerald-50 hover:text-emerald-700 transition">💰 Earnings</a>
+          <a href="{% url 'doctor_analytics' %}" class="flex flex-col items-center gap-1.5 p-3.5 rounded-xl bg-slate-50 hover:bg-emerald-50 hover:text-emerald-700 transition">📈 Analytics</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

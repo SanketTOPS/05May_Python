@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% block title %}DrFinder — Verify OTP{% endblock %}
+
+{% block content %}
+<div class="min-h-[80vh] flex items-center justify-center bg-slate-50 px-4 py-12">
+  <div class="w-full max-w-md">
+
+    <!-- Card -->
+    <div class="bg-white rounded-3xl shadow-xl shadow-slate-200 border border-slate-100 overflow-hidden">
+
+      <!-- Header -->
+      <div class="bg-gradient-to-br from-indigo-600 to-indigo-800 px-8 py-8 text-center text-white">
+        <div class="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-white/20 backdrop-blur text-3xl mb-4">
+          📧
+        </div>
+        <h1 class="text-2xl font-extrabold">Check Your Email</h1>
+        <p class="text-indigo-200 text-sm mt-1">
+          We sent a 6-digit code to
+          <span class="font-bold text-white">{{ email_hint }}</span>
+        </p>
+      </div>
+
+      <!-- Form Body -->
+      <div class="px-8 py-8">
+
+        {% if messages %}
+          {% for msg in messages %}
+            <div class="mb-4 rounded-xl px-4 py-3 text-sm font-medium
+              {% if msg.tags == 'error' %}bg-red-50 text-red-700 border border-red-200
+              {% elif msg.tags == 'success' %}bg-emerald-50 text-emerald-700 border border-emerald-200
+              {% else %}bg-amber-50 text-amber-700 border border-amber-200{% endif %}">
+              {{ msg }}
+            </div>
+          {% endfor %}
+        {% endif %}
+
+        <form method="post" id="otp-form" autocomplete="off">
+          {% csrf_token %}
+
+          <!-- OTP digit inputs (JS-linked, submits to hidden field) -->
+          <div class="mb-6">
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 text-center">
+              Enter Your OTP
+            </label>
+            <!-- 6 separate digit boxes for UX, linked via JS to actual input -->
+            <div class="flex gap-3 justify-center mb-3" id="otp-boxes">
+              {% for i in "123456" %}
+                <input type="text"
+                  class="otp-digit w-12 h-14 text-center text-xl font-bold rounded-xl border-2 border-slate-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 transition"
+                  maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+              {% endfor %}
+            </div>
+            <!-- Hidden field that Django reads -->
+            <input type="hidden" name="otp_code" id="otp_code_hidden">
+            {% if form.otp_code.errors %}
+              <p class="text-red-600 text-xs text-center mt-1">{{ form.otp_code.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Timer -->
+          <div class="text-center mb-6">
+            <span class="text-xs text-slate-400">Code expires in </span>
+            <span id="countdown" class="text-xs font-bold text-indigo-600">10:00</span>
+          </div>
+
+          <button type="submit"
+            class="w-full rounded-xl bg-indigo-600 hover:bg-indigo-500 py-3.5 text-sm font-bold text-white shadow-md shadow-indigo-200 transition">
+            Verify OTP →
+          </button>
+        </form>
+
+        <!-- Resend -->
+        <div class="mt-6 text-center border-t border-slate-100 pt-6">
+          <p class="text-sm text-slate-500">Didn't receive the code?</p>
+          <form method="post" action="{% url 'resend_otp' %}" class="inline mt-2">
+            {% csrf_token %}
+            <button type="submit"
+              class="text-sm font-bold text-indigo-600 hover:text-indigo-500 transition hover:underline">
+              Resend OTP
+            </button>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── OTP box auto-advance logic ──────────────────────────────────────────
+  const digits = document.querySelectorAll('.otp-digit');
+  const hidden = document.getElementById('otp_code_hidden');
+  const form   = document.getElementById('otp-form');
+
+  digits.forEach((el, idx) => {
+    el.addEventListener('input', () => {
+      el.value = el.value.replace(/\D/g, '').slice(0, 1);
+      if (el.value && idx < digits.length - 1) digits[idx + 1].focus();
+      syncHidden();
+    });
+    el.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' && !el.value && idx > 0) {
+        digits[idx - 1].focus();
+      }
+    });
+    el.addEventListener('paste', (e) => {
+      e.preventDefault();
+      const paste = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '');
+      paste.slice(0, 6).split('').forEach((c, i) => {
+        if (digits[i]) digits[i].value = c;
+      });
+      syncHidden();
+      if (paste.length >= 6) form.requestSubmit();
+    });
+  });
+
+  function syncHidden() {
+    hidden.value = Array.from(digits).map(d => d.value).join('');
+  }
+
+  form.addEventListener('submit', () => syncHidden());
+
+  // ── Countdown timer ───────────────────────────────────────────────────────
+  let timeLeft = 600; // 10 minutes
+  const countdownEl = document.getElementById('countdown');
+  const timer = setInterval(() => {
+    timeLeft--;
+    if (timeLeft <= 0) {
+      clearInterval(timer);
+      countdownEl.textContent = 'Expired';
+      countdownEl.classList.replace('text-indigo-600', 'text-red-500');
+      return;
+    }
+    const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+    const s = (timeLeft % 60).toString().padStart(2, '0');
+    countdownEl.textContent = `${m}:${s}`;
+  }, 1000);
+</script>
+{% endblock %}

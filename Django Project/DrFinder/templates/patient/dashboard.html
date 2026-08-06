@@ -1,0 +1,130 @@
+{% extends 'patient/base_patient.html' %}
+{% block title %}Patient Dashboard — DrFinder{% endblock %}
+
+{% block patient_content %}
+<div class="space-y-8">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-extrabold text-slate-900">Welcome back, {{ request.user.first_name|default:request.user.username }}! 👋</h1>
+      <p class="text-slate-500 text-sm mt-1">Here's a summary of your health activity.</p>
+    </div>
+    <a href="{% url 'doctor_search' %}" class="hidden sm:inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md hover:bg-indigo-500 transition">
+      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+      Find a Doctor
+    </a>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition">
+      <div class="flex items-center gap-3">
+        <div class="h-10 w-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold text-lg">📅</div>
+        <div>
+          <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Upcoming</p>
+          <p class="text-2xl font-extrabold text-slate-900">{{ upcoming_count }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition">
+      <div class="flex items-center gap-3">
+        <div class="h-10 w-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 font-bold text-lg">✅</div>
+        <div>
+          <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Completed</p>
+          <p class="text-2xl font-extrabold text-slate-900">{{ completed_count }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition">
+      <div class="flex items-center gap-3">
+        <div class="h-10 w-10 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600 font-bold text-lg">💊</div>
+        <div>
+          <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Prescriptions</p>
+          <p class="text-2xl font-extrabold text-slate-900">{{ prescription_count }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition">
+      <div class="flex items-center gap-3">
+        <div class="h-10 w-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 font-bold text-lg">💰</div>
+        <div>
+          <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Wallet</p>
+          <p class="text-2xl font-extrabold text-slate-900">₹{{ wallet.balance|floatformat:0 }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- Upcoming Appointments -->
+    <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+        <h2 class="text-sm font-bold text-slate-900">Upcoming Appointments</h2>
+        <a href="{% url 'upcoming_appointments_page' %}" class="text-xs text-indigo-600 font-semibold hover:underline">View all →</a>
+      </div>
+      <div class="divide-y divide-slate-100">
+        {% for appt in recent_appointments %}
+        <div class="flex items-center gap-4 px-6 py-4">
+          <div class="h-12 w-12 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold shrink-0 overflow-hidden border">
+            {% if appt.doctor.user.profile_picture %}
+              <img src="{{ appt.doctor.user.profile_picture.url }}" class="h-full w-full object-cover" alt="">
+            {% else %}DR{% endif %}
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-bold text-slate-900 truncate">Dr. {{ appt.doctor.user.get_full_name }}</p>
+            <p class="text-xs text-slate-500">{{ appt.doctor.get_specialization_display }} · {{ appt.slot.date|date:"d M Y" }} at {{ appt.slot.start_time|time:"H:i" }}</p>
+          </div>
+          {% if appt.status == 'CONFIRMED' %}
+            <span class="shrink-0 inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-600/20">Confirmed</span>
+          {% elif appt.status == 'PENDING' %}
+            <a href="{% url 'payment_checkout' appt.id %}" class="shrink-0 rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-bold text-white hover:bg-amber-400 transition">Pay Now</a>
+          {% endif %}
+        </div>
+        {% empty %}
+        <div class="px-6 py-10 text-center text-slate-400">
+          <p class="text-3xl mb-2">🗓️</p>
+          <p class="text-sm font-medium">No upcoming appointments.</p>
+          <a href="{% url 'doctor_search' %}" class="mt-3 inline-block text-xs font-bold text-indigo-600 hover:underline">Book one now →</a>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Notifications + Quick Links -->
+    <div class="space-y-5">
+      <!-- Notifications Card -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+          <h2 class="text-sm font-bold text-slate-900">Recent Notifications</h2>
+          <a href="{% url 'patient_notifications' %}" class="text-xs text-indigo-600 font-semibold hover:underline">All →</a>
+        </div>
+        <div class="divide-y divide-slate-100">
+          {% for notif in recent_notifications %}
+          <div class="px-5 py-3.5 {% if not notif.is_read %}bg-indigo-50/50{% endif %}">
+            <p class="text-xs font-semibold text-slate-800">{{ notif.title }}</p>
+            <p class="text-xs text-slate-500 mt-0.5 line-clamp-1">{{ notif.message }}</p>
+            <p class="text-xs text-slate-400 mt-1">{{ notif.created_at|timesince }} ago</p>
+          </div>
+          {% empty %}
+          <div class="px-5 py-6 text-center text-slate-400 text-xs">No notifications yet.</div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Quick Links -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+        <h2 class="text-sm font-bold text-slate-900 mb-3">Quick Links</h2>
+        <div class="grid grid-cols-2 gap-2">
+          <a href="{% url 'download_prescriptions' %}" class="flex flex-col items-center gap-1 p-3 rounded-xl bg-slate-50 hover:bg-indigo-50 hover:text-indigo-700 transition text-slate-600 text-xs font-semibold text-center">💊 Prescriptions</a>
+          <a href="{% url 'patient_invoices' %}" class="flex flex-col items-center gap-1 p-3 rounded-xl bg-slate-50 hover:bg-indigo-50 hover:text-indigo-700 transition text-slate-600 text-xs font-semibold text-center">🧾 Invoices</a>
+          <a href="{% url 'upload_reports' %}" class="flex flex-col items-center gap-1 p-3 rounded-xl bg-slate-50 hover:bg-indigo-50 hover:text-indigo-700 transition text-slate-600 text-xs font-semibold text-center">📤 Reports</a>
+          <a href="{% url 'support_tickets' %}" class="flex flex-col items-center gap-1 p-3 rounded-xl bg-slate-50 hover:bg-indigo-50 hover:text-indigo-700 transition text-slate-600 text-xs font-semibold text-center">🎫 Support</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

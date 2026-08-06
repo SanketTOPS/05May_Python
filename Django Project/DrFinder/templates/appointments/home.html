@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+
+{% block title %}DrFinder - Home{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="relative bg-gradient-to-tr from-slate-900 via-indigo-950 to-slate-900 py-20 text-white overflow-hidden">
+    <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#4f46e5_1px,transparent_1px)] [background-size:16px_16px]"></div>
+    
+    <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
+        <span class="inline-flex items-center gap-1.5 rounded-full bg-indigo-500/10 px-3 py-1 text-xs font-semibold text-indigo-400 ring-1 ring-inset ring-indigo-500/20 mb-6">
+            ⚕️ Enterprise Healthcare Management
+        </span>
+        <h1 class="text-4xl font-extrabold tracking-tight sm:text-6xl max-w-3xl mx-auto leading-none bg-gradient-to-b from-white to-slate-200 bg-clip-text text-transparent">
+            Find the Right Doctor, Book Instantly.
+        </h1>
+        <p class="mt-6 text-lg text-slate-300 max-w-xl mx-auto">
+            Connect with certified medical practitioners, manage your schedules, view reports, and issue digital prescriptions securely.
+        </p>
+
+        <!-- Search Bar Form -->
+        <form action="{% url 'doctor_search' %}" method="get" class="mx-auto mt-10 max-w-2xl bg-white p-2 rounded-2xl shadow-2xl flex flex-col sm:flex-row gap-2 border border-slate-700/10">
+            <div class="flex-1 flex items-center px-3 gap-2">
+                <svg class="h-5 w-5 text-slate-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input type="text" name="q" placeholder="Search by doctor name, specialty, hospital..." class="w-full border-0 focus:outline-none focus:ring-0 text-slate-950 text-sm py-2">
+            </div>
+            
+            <div class="border-t sm:border-t-0 sm:border-l border-slate-100 flex-shrink-0 flex items-center px-3 select-box">
+                <select name="specialization" class="bg-transparent border-0 focus:outline-none text-slate-600 text-sm py-2 pr-8">
+                    <option value="ALL">All Specialties</option>
+                    {% for key, val in specializations %}
+                        <option value="{{ key }}">{{ val }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button type="submit" class="rounded-xl bg-indigo-600 hover:bg-indigo-500 px-6 py-3 text-sm font-semibold text-white transition-all shadow-md shadow-indigo-200">
+                Search
+            </button>
+        </form>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="border-y border-slate-200 bg-white py-8">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 gap-y-8 sm:grid-cols-3 text-center sm:divide-x sm:divide-slate-100">
+            <div>
+                <span class="block text-4xl font-extrabold text-indigo-600">{{ stats.doctors_count }}+</span>
+                <span class="mt-2 block text-sm font-semibold uppercase tracking-wider text-slate-500">Verified Doctors</span>
+            </div>
+            <div>
+                <span class="block text-4xl font-extrabold text-indigo-600">{{ stats.appointments_count }}+</span>
+                <span class="mt-2 block text-sm font-semibold uppercase tracking-wider text-slate-500">Successful Bookings</span>
+            </div>
+            <div>
+                <span class="block text-4xl font-extrabold text-indigo-600">{{ stats.patients_count }}+</span>
+                <span class="mt-2 block text-sm font-semibold uppercase tracking-wider text-slate-500">Active Patients</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Specializations Categories -->
+<section class="py-16">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-xl mx-auto mb-12">
+            <h2 class="text-3xl font-bold tracking-tight text-slate-900">Search by Speciality</h2>
+            <p class="mt-4 text-slate-500">Access verified professionals across multiple domains immediately.</p>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <a href="{% url 'doctor_search' %}?specialization=GENERAL" class="p-6 bg-white hover:bg-slate-50 hover:border-indigo-200 transition border border-slate-200 rounded-2xl flex flex-col items-center text-center group shadow-sm">
+                <div class="h-12 w-12 rounded-xl bg-indigo-50 flex items-center justify-center text-2xl group-hover:scale-110 transition">🩺</div>
+                <h3 class="mt-4 text-sm font-bold text-slate-900">General Physician</h3>
+            </a>
+            <a href="{% url 'doctor_search' %}?specialization=CARDIOLOGY" class="p-6 bg-white hover:bg-slate-50 hover:border-indigo-200 transition border border-slate-200 rounded-2xl flex flex-col items-center text-center group shadow-sm">
+                <div class="h-12 w-12 rounded-xl bg-indigo-50 flex items-center justify-center text-2xl group-hover:scale-110 transition">❤️</div>
+                <h3 class="mt-4 text-sm font-bold text-slate-900">Cardiologist</h3>
+            </a>
+            <a href="{% url 'doctor_search' %}?specialization=DERMATOLOGY" class="p-6 bg-white hover:bg-slate-50 hover:border-indigo-200 transition border border-slate-200 rounded-2xl flex flex-col items-center text-center group shadow-sm">
+                <div class="h-12 w-12 rounded-xl bg-indigo-50 flex items-center justify-center text-2xl group-hover:scale-110 transition">✨</div>
+                <h3 class="mt-4 text-sm font-bold text-slate-900">Dermatologist</h3>
+            </a>
+            <a href="{% url 'doctor_search' %}?specialization=PEDIATRICS" class="p-6 bg-white hover:bg-slate-50 hover:border-indigo-200 transition border border-slate-200 rounded-2xl flex flex-col items-center text-center group shadow-sm">
+                <div class="h-12 w-12 rounded-xl bg-indigo-50 flex items-center justify-center text-2xl group-hover:scale-110 transition">👶</div>
+                <h3 class="mt-4 text-sm font-bold text-slate-900">Pediatrician</h3>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Doctor Spotlight -->
+<section class="py-16 bg-slate-100/50 border-t border-slate-200">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="flex items-end justify-between mb-12">
+            <div>
+                <h2 class="text-3xl font-bold tracking-tight text-slate-900">Our Spotlight Specialists</h2>
+                <p class="mt-2 text-slate-500">Highly experienced medical professionals ready to assist you.</p>
+            </div>
+            <a href="{% url 'doctor_search' %}" class="hidden sm:inline-flex items-center gap-1.5 text-sm font-bold text-indigo-600 hover:text-indigo-500 transition">
+                View All Doctors &rarr;
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            {% for doctor in doctors %}
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col hover:shadow-md transition">
+                    <div class="relative h-48 bg-slate-100 flex-shrink-0">
+                        {% if doctor.user.profile_picture %}
+                            <img src="{{ doctor.user.profile_picture.url }}" alt="{{ doctor.user.get_full_name }}" class="h-full w-full object-cover">
+                        {% else %}
+                            <div class="h-full w-full flex items-center justify-center bg-indigo-50 text-indigo-400 font-extrabold text-3xl">
+                                DR
+                            </div>
+                        {% endif %}
+                        <span class="absolute top-3 right-3 inline-flex items-center rounded-full bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
+                            Verified
+                        </span>
+                    </div>
+                    <div class="p-5 flex-1 flex flex-col justify-between">
+                        <div>
+                            <span class="text-xs font-semibold text-indigo-600 uppercase tracking-wider">{{ doctor.get_specialization_display }}</span>
+                            <h3 class="mt-1 text-base font-bold text-slate-950">Dr. {{ doctor.user.get_full_name }}</h3>
+                            <p class="text-xs text-slate-400 mt-0.5">{{ doctor.hospital_name }}</p>
+                            <p class="text-sm text-slate-500 mt-3 line-clamp-2 leading-relaxed">{{ doctor.bio }}</p>
+                        </div>
+
+                        <div class="border-t border-slate-100 mt-5 pt-4 flex items-center justify-between">
+                            <div>
+                                <span class="text-xs text-slate-400 block uppercase tracking-wider">Fee</span>
+                                <span class="text-base font-extrabold text-slate-950">${{ doctor.consultation_fee }}</span>
+                            </div>
+                            <a href="{% url 'doctor_detail' doctor.pk %}" class="rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white px-3.5 py-2 text-xs font-bold transition">
+                                Book Now
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-span-4 text-center py-12 text-slate-400 border-2 border-dashed border-slate-200 rounded-2xl">
+                    No verified doctors are currently registered in the database.
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Call to Actions -->
+<section class="py-16 border-t border-slate-200 bg-white">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="p-8 bg-gradient-to-tr from-indigo-550 to-indigo-600 rounded-3xl text-white relative overflow-hidden flex flex-col justify-between h-72 shadow-xl shadow-indigo-100 bg-indigo-600">
+                <div>
+                    <h3 class="text-2xl font-bold">Are you a patient?</h3>
+                    <p class="mt-2 text-indigo-100 text-sm max-w-sm">Sign up today to search doctor availability, schedule consulting slots, pay online, and access digital prescriptions anytime.</p>
+                </div>
+                <a href="{% url 'register_patient' %}" class="self-start rounded-xl bg-white text-indigo-600 px-5 py-3 text-sm font-bold shadow-md hover:bg-slate-50 transition">Register as Patient</a>
+            </div>
+            
+            <div class="p-8 bg-slate-900 rounded-3xl text-white relative overflow-hidden flex flex-col justify-between h-72 shadow-xl">
+                <div>
+                    <h3 class="text-2xl font-bold">Are you a doctor?</h3>
+                    <p class="mt-2 text-slate-400 text-sm max-w-sm">Join our medical directory, configure your schedule, confirm patient bookings, and write digital prescriptions.</p>
+                </div>
+                <a href="{% url 'register_doctor' %}" class="self-start rounded-xl bg-indigo-600 text-white px-5 py-3 text-sm font-bold shadow-md hover:bg-indigo-500 transition">Join as Medical Partner</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

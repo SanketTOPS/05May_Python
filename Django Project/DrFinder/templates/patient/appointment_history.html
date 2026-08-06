@@ -1,0 +1,92 @@
+{% extends 'patient/base_patient.html' %}
+{% block title %}Appointment History — DrFinder{% endblock %}
+
+{% block patient_content %}
+<div class="space-y-6">
+  <div>
+    <h1 class="text-2xl font-extrabold text-slate-900">Appointment History</h1>
+    <p class="text-slate-500 text-sm mt-1">All your past and current appointments in one place.</p>
+  </div>
+
+  <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+    <table class="min-w-full divide-y divide-slate-200 text-left text-sm">
+      <thead class="bg-slate-50 text-slate-500 text-xs uppercase font-semibold tracking-wider">
+        <tr>
+          <th class="px-5 py-4">#</th>
+          <th class="px-5 py-4">Doctor</th>
+          <th class="px-5 py-4">Date & Time</th>
+          <th class="px-5 py-4">Status</th>
+          <th class="px-5 py-4">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        {% for appt in page_obj %}
+        <tr class="hover:bg-slate-50 transition">
+          <td class="px-5 py-4 text-slate-400 font-mono">#{{ appt.id }}</td>
+          <td class="px-5 py-4">
+            <div class="font-semibold text-slate-900">Dr. {{ appt.doctor.user.get_full_name }}</div>
+            <div class="text-xs text-slate-400">{{ appt.doctor.get_specialization_display }}</div>
+          </td>
+          <td class="px-5 py-4 text-slate-600">
+            {{ appt.slot.date|date:"d M Y" }}<br>
+            <span class="text-xs text-slate-400">{{ appt.slot.start_time|time:"H:i" }}</span>
+          </td>
+          <td class="px-5 py-4">
+            {% if appt.status == 'CONFIRMED' %}
+              <span class="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-bold text-indigo-700 ring-1 ring-indigo-600/20">Confirmed</span>
+            {% elif appt.status == 'COMPLETED' %}
+              <span class="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700 ring-1 ring-emerald-600/20">Completed</span>
+            {% elif appt.status == 'CANCELLED' %}
+              <span class="inline-flex items-center rounded-full bg-red-50 px-2.5 py-1 text-xs font-bold text-red-700 ring-1 ring-red-600/20">Cancelled</span>
+            {% elif appt.status == 'PENDING' %}
+              <span class="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700 ring-1 ring-amber-600/20">Pending</span>
+            {% endif %}
+          </td>
+          <td class="px-5 py-4">
+            <div class="flex items-center gap-2">
+              {% if appt.status == 'PENDING' %}
+                <a href="{% url 'payment_checkout' appt.id %}" class="text-xs font-bold text-emerald-600 hover:underline">Pay Now</a>
+              {% endif %}
+              {% if appt.prescription %}
+                <a href="{% url 'print_prescription' appt.prescription.id %}" class="text-xs font-bold text-indigo-600 hover:underline" target="_blank">Prescription</a>
+              {% endif %}
+              {% if appt.status == 'CONFIRMED' or appt.status == 'PENDING' %}
+                <form action="{% url 'appointment_action' appt.id 'cancel' %}" method="post" onsubmit="return confirm('Cancel appointment #{{ appt.id }}?')">
+                  {% csrf_token %}
+                  <button type="submit" class="text-xs text-red-500 hover:underline font-semibold">Cancel</button>
+                </form>
+              {% endif %}
+              {% if appt.status == 'COMPLETED' and not appt.review %}
+                <a href="{% url 'patient_reviews' %}" class="text-xs font-bold text-amber-600 hover:underline">Rate</a>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="px-5 py-12 text-center text-slate-400">
+            <p class="text-3xl mb-2">📜</p>
+            <p class="font-medium">No appointments found.</p>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  {% if page_obj.has_other_pages %}
+  <div class="flex items-center justify-between">
+    <p class="text-xs text-slate-500">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</p>
+    <div class="flex gap-2">
+      {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}" class="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition">← Prev</a>
+      {% endif %}
+      {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}" class="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition">Next →</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

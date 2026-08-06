@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block title %}DrFinder - Dr. {{ doctor.user.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8 bg-slate-50 min-h-[70vh]">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Doctor Profile Card (Left Column) -->
+        <div class="lg:col-span-1 bg-white border border-slate-200 p-6 rounded-2xl shadow-sm h-fit">
+            <div class="text-center">
+                <div class="h-32 w-32 rounded-2xl bg-indigo-50 border overflow-hidden mx-auto mb-4 flex items-center justify-center">
+                    {% if doctor.user.profile_picture %}
+                        <img src="{{ doctor.user.profile_picture.url }}" alt="{{ doctor.user.get_full_name }}" class="h-full w-full object-cover">
+                    {% else %}
+                        <span class="text-4xl font-extrabold text-indigo-400">DR</span>
+                    {% endif %}
+                </div>
+                <span class="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-semibold text-indigo-750 text-indigo-700">
+                    {{ doctor.get_specialization_display }}
+                </span>
+                <h3 class="text-xl font-extrabold text-slate-900 mt-2">Dr. {{ doctor.user.get_full_name }}</h3>
+                <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider mt-0.5">{{ doctor.hospital_name }}</p>
+            </div>
+
+            <div class="mt-6 pt-6 border-t border-slate-100 space-y-4 text-sm">
+                <div class="flex justify-between">
+                    <span class="text-slate-400 font-semibold">Experience</span>
+                    <span class="font-bold text-slate-800">{{ doctor.experience_years }} Years</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400 font-semibold">Qualification</span>
+                    <span class="font-bold text-slate-800 text-right">{{ doctor.qualification }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400 font-semibold">Consulting Fee</span>
+                    <span class="font-extrabold text-slate-900 text-base">${{ doctor.consultation_fee }}</span>
+                </div>
+            </div>
+
+            <div class="mt-6 pt-6 border-t border-slate-100">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Clinic Location</h4>
+                <p class="text-xs text-slate-600 leading-relaxed">{{ doctor.address }}</p>
+            </div>
+        </div>
+
+        <!-- Consultation Slots and Form (Right Columns) -->
+        <div class="lg:col-span-2 space-y-6">
+            
+            <!-- Doctor biography -->
+            <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
+                <h4 class="text-base font-bold text-slate-900 mb-2">Doctor Biography</h4>
+                <p class="text-sm text-slate-650 text-slate-650 leading-relaxed">{{ doctor.bio|default:"No biography uploaded yet." }}</p>
+            </div>
+
+            <!-- Slots Scheduler Calendar -->
+            <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
+                <h4 class="text-base font-bold text-slate-900 mb-4 pb-2 border-b border-slate-100">
+                    📅 Available Appointment Slots
+                </h4>
+
+                {% if available_slots %}
+                    <div class="space-y-6">
+                        <p class="text-xs text-slate-400 font-medium">Select a slot to start booking your consultation:</p>
+                        
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            {% for slot in available_slots %}
+                                <button type="button" 
+                                        onclick="selectSlot('{{ slot.id }}', '{{ slot.date|date:'M d, Y' }}', '{{ slot.start_time|time:'H:i' }}')"
+                                        id="btn-slot-{{ slot.id }}"
+                                        class="slot-btn p-3 border border-slate-200 rounded-xl hover:border-indigo-500 hover:bg-indigo-50 text-left transition duration-150">
+                                    <span class="block text-xs font-bold text-slate-800">{{ slot.date|date:"l, M d" }}</span>
+                                    <span class="block text-sm font-semibold text-indigo-650 mt-1 font-mono">{{ slot.start_time|time:"H:i" }}</span>
+                                </button>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Booking Details Form (Revealed upon slot selection) -->
+                        <div id="booking-container" class="hidden mt-8 pt-6 border-t border-slate-100 space-y-4">
+                            <div class="bg-indigo-50 rounded-xl p-4 border border-indigo-100 flex items-center justify-between text-xs">
+                                <div>
+                                    <span class="text-slate-400 font-semibold uppercase tracking-wider block">Selected Slot</span>
+                                    <span id="selected-slot-details" class="font-bold text-indigo-800 text-sm"></span>
+                                </div>
+                                <span class="font-extrabold text-slate-900 text-base">${{ doctor.consultation_fee }}</span>
+                            </div>
+
+                            <form id="booking-form" action="" method="post" class="space-y-4">
+                                {% csrf_token %}
+                                
+                                <div>
+                                    <label for="symptoms" class="block text-sm font-semibold text-slate-700">Describe Symptoms *</label>
+                                    <textarea id="symptoms" name="symptoms" rows="3" required placeholder="Describe your health symptoms (e.g. fever, headache, joint pain for 2 days)"
+                                              class="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 sm:text-sm"></textarea>
+                                </div>
+
+                                <div>
+                                    <label for="notes" class="block text-sm font-semibold text-slate-700">Optional Notes for Doctor</label>
+                                    <textarea id="notes" name="notes" rows="2" placeholder="Any previous allergies, details of ongoing medicines, etc."
+                                              class="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 sm:text-sm"></textarea>
+                                </div>
+
+                                <button type="submit" class="w-full rounded-xl bg-indigo-600 hover:bg-indigo-500 py-3 text-sm font-bold text-white transition shadow-md shadow-indigo-150">
+                                    Proceed to Checkout &rarr;
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="text-center py-10 bg-slate-50 border rounded-2xl text-slate-400 text-sm">
+                        No availability slots are currently published for this doctor. Please check back later.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function selectSlot(slotId, dateStr, timeStr) {
+        // Reset all buttons
+        document.querySelectorAll('.slot-btn').forEach(btn => {
+            btn.classList.remove('border-indigo-600', 'bg-indigo-50', 'ring-2', 'ring-indigo-600');
+        });
+        
+        // Select active button
+        const selectedBtn = document.getElementById('btn-slot-' + slotId);
+        selectedBtn.classList.add('border-indigo-600', 'bg-indigo-50', 'ring-2', 'ring-indigo-600');
+
+        // Update selected details box
+        document.getElementById('selected-slot-details').innerText = dateStr + ' at ' + timeStr;
+
+        // Update form action URL dynamically
+        const form = document.getElementById('booking-form');
+        form.action = '/appointments/book/' + slotId + '/';
+
+        // Unhide form
+        document.getElementById('booking-container').classList.remove('hidden');
+        
+        // Scroll smoothly to form
+        document.getElementById('booking-container').scrollIntoView({ behavior: 'smooth' });
+    }
+</script>
+{% endblock %}

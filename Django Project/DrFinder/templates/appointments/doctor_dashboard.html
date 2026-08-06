@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+
+{% block title %}DrFinder - Doctor Dashboard{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 bg-slate-50 min-h-[70vh]">
+    {% if pending_approval %}
+        <!-- Account Pending Approval Banner -->
+        <div class="max-w-xl mx-auto mt-16 bg-white border border-slate-200 rounded-3xl p-8 text-center shadow-xl">
+            <div class="h-20 w-20 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center text-4xl mx-auto mb-6">
+                ⏳
+            </div>
+            <h2 class="text-2xl font-extrabold text-slate-900">Profile Pending Verification</h2>
+            <p class="mt-4 text-slate-500 leading-relaxed text-sm">
+                Your medical partner account is currently being reviewed by our administrators. We will verify your qualifications, experience, and clinic address. You will receive access as soon as your profile status is set to Approved.
+            </p>
+            <div class="mt-8 pt-6 border-t flex justify-center gap-4 text-xs text-slate-400 font-semibold uppercase tracking-wider">
+                <span>Status: PENDING</span>
+                <span>•</span>
+                <span>Contact: admin@drfinder.com</span>
+            </div>
+        </div>
+    {% else %}
+        <!-- Doctor Scheduler Dashboard -->
+        <div class="mb-8 border-b pb-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div>
+                <h2 class="text-2xl font-bold text-slate-900 sm:text-3xl">Doctor Consulting Desk</h2>
+                <p class="mt-1 text-sm text-slate-500">Configure your daily slots, review bookings, and write prescriptions.</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
+                    Approved Partner
+                </span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Appointments Queue (Left Columns) -->
+            <div class="lg:col-span-2 space-y-8">
+                
+                <!-- Pending Appointments (Paid, awaiting doctor confirmation) -->
+                <div>
+                    <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2 mb-4">
+                        🛎️ New Booking Requests
+                        <span class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800">
+                            {{ pending_appointments.count }}
+                        </span>
+                    </h3>
+                    
+                    {% for appt in pending_appointments %}
+                        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                            <div>
+                                <h4 class="text-base font-bold text-slate-900">{{ appt.patient.user.get_full_name }}</h4>
+                                <p class="text-xs text-slate-400">DOB: {{ appt.patient.date_of_birth }} | Gender: {{ appt.patient.get_gender_display }}</p>
+                                <p class="text-xs text-indigo-600 mt-2 bg-indigo-50 px-2 py-1 rounded inline-block font-semibold">Symptoms: {{ appt.symptoms }}</p>
+                                <p class="text-sm text-slate-500 mt-3 flex items-center gap-1.5">
+                                    <span>📅 {{ appt.slot.date|date:"F d, Y" }}</span>
+                                    <span>⏰ {{ appt.slot.start_time|time:"H:i" }} - {{ appt.slot.end_time|time:"H:i" }}</span>
+                                </p>
+                            </div>
+                            <div class="flex sm:flex-col gap-2 w-full sm:w-auto">
+                                <form action="{% url 'appointment_action' appt.id 'accept' %}" method="post" class="w-full">
+                                    {% csrf_token %}
+                                    <button type="submit" class="w-full rounded-lg bg-indigo-600 hover:bg-indigo-500 px-4 py-2 text-xs font-bold text-white transition">
+                                        Accept
+                                    </button>
+                                </form>
+                                <form action="{% url 'appointment_action' appt.id 'cancel' %}" method="post" onsubmit="return confirm('Cancel appointment?');" class="w-full">
+                                    {% csrf_token %}
+                                    <button type="submit" class="w-full rounded-lg border border-slate-200 hover:bg-slate-50 px-4 py-2 text-xs font-bold text-slate-600 transition">
+                                        Reject
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="text-center py-6 bg-white border border-slate-200 border-dashed rounded-2xl text-slate-400">
+                            No pending requests.
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Confirmed / Upcoming Consultations -->
+                <div>
+                    <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2 mb-4">
+                        📅 Confirmed Consultations
+                        <span class="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-semibold text-indigo-700">
+                            {{ upcoming_appointments.count }}
+                        </span>
+                    </h3>
+
+                    {% for appt in upcoming_appointments %}
+                        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                            <div>
+                                <h4 class="text-base font-bold text-slate-900">{{ appt.patient.user.get_full_name }}</h4>
+                                <p class="text-xs text-slate-400">Symptoms: {{ appt.symptoms }}</p>
+                                <p class="text-sm text-slate-500 mt-2 flex items-center gap-1.5">
+                                    <span>📅 {{ appt.slot.date|date:"F d, Y" }}</span>
+                                    <span>⏰ {{ appt.slot.start_time|time:"H:i" }} - {{ appt.slot.end_time|time:"H:i" }}</span>
+                                </p>
+                            </div>
+                            <div class="flex gap-2 w-full sm:w-auto">
+                                <a href="{% url 'write_prescription' appt.id %}" class="w-full text-center rounded-lg bg-emerald-600 hover:bg-emerald-500 px-4 py-2 text-xs font-bold text-white transition">
+                                    Prescribe & Complete
+                                </a>
+                                <form action="{% url 'appointment_action' appt.id 'cancel' %}" method="post" onsubmit="return confirm('Cancel appointment?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="rounded-lg border border-slate-200 hover:bg-slate-50 px-4 py-2 text-xs font-bold text-slate-400 transition">
+                                        Cancel
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="text-center py-8 bg-white border border-slate-200 border-dashed rounded-2xl text-slate-400">
+                            No confirmed consultations scheduled for today.
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Past History & Prescriptions -->
+                <div>
+                    <h3 class="text-lg font-bold text-slate-900 mb-4">📜 Historical Ledger</h3>
+                    <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+                        <table class="min-w-full divide-y divide-slate-200 text-left">
+                            <thead class="bg-slate-50 text-slate-55 text-slate-500 text-xs uppercase font-semibold">
+                                <tr>
+                                    <th scope="col" class="px-6 py-4">Patient</th>
+                                    <th scope="col" class="px-6 py-4">Schedule</th>
+                                    <th scope="col" class="px-6 py-4">Status</th>
+                                    <th scope="col" class="px-6 py-4">Prescription</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200 text-sm">
+                                {% for appt in past_appointments %}
+                                    <tr>
+                                        <td class="px-6 py-4 font-semibold text-slate-900">{{ appt.patient.user.get_full_name }}</td>
+                                        <td class="px-6 py-4 text-slate-500">{{ appt.slot.date }}</td>
+                                        <td class="px-6 py-4">
+                                            {% if appt.status == 'COMPLETED' %}
+                                                <span class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20">Completed</span>
+                                            {% else %}
+                                                <span class="inline-flex items-center rounded-full bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">Cancelled</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            {% if appt.status == 'COMPLETED' %}
+                                                <a href="{% url 'write_prescription' appt.id %}" class="text-indigo-600 font-bold hover:underline">
+                                                    {% if appt.prescription %}Edit Prescription{% else %}Write Prescription{% endif %}
+                                                </a>
+                                            {% else %}
+                                                <span class="text-slate-400">-</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="4" class="text-center py-6 text-slate-400">No past schedules found.</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scheduler Controls (Right Column) -->
+            <div class="space-y-6">
+                <!-- Slot Generator Card -->
+                <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                    <h3 class="text-base font-bold text-slate-900 mb-4 pb-2 border-b border-slate-100 flex items-center gap-1.5">
+                        ⚙️ Generate Availability Slots
+                    </h3>
+                    <form action="{% url 'generate_slots' %}" method="post" class="space-y-4">
+                        {% csrf_token %}
+                        {% for field in slot_form %}
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">{{ field.label }}</label>
+                                {{ field }}
+                                {% if field.help_text %}
+                                    <span class="text-[10px] text-slate-400 mt-1 block">{{ field.help_text }}</span>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                        <button type="submit" class="w-full rounded-xl bg-indigo-600 hover:bg-indigo-500 py-3 text-sm font-bold text-white transition shadow-md shadow-indigo-150 mt-4">
+                            Generate Slots
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Active Slots List -->
+                <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                    <h3 class="text-base font-bold text-slate-900 mb-4 pb-2 border-b border-slate-100 flex items-center justify-between">
+                        <span>⌛ Active Slots Today</span>
+                        <span class="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">
+                            {{ active_slots.count }}
+                        </span>
+                    </h3>
+                    <div class="space-y-2 max-h-96 overflow-y-auto pr-1">
+                        {% for slot in active_slots %}
+                            <div class="flex items-center justify-between p-2.5 hover:bg-slate-55 rounded-xl border border-slate-150 hover:bg-slate-50 transition text-xs">
+                                <div>
+                                    <span class="font-semibold text-slate-800 block">{{ slot.date|date:"d M Y" }}</span>
+                                    <span class="text-slate-500 font-mono">{{ slot.start_time|time:"H:i" }} - {{ slot.end_time|time:"H:i" }}</span>
+                                </div>
+                                <form action="{% url 'delete_slot' slot.id %}" method="post">
+                                    {% csrf_token %}
+                                    <button type="submit" class="text-red-500 hover:text-red-700 p-1 font-bold hover:bg-red-50 rounded" title="Delete Slot">
+                                        ❌
+                                    </button>
+                                </form>
+                            </div>
+                        {% empty %}
+                            <p class="text-center py-6 text-slate-400 text-xs">No active unbooked slots found.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

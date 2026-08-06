@@ -1,0 +1,98 @@
+{% extends 'doctor/base_doctor.html' %}
+{% block title %}Revenue Dashboard — DrFinder{% endblock %}
+
+{% block doctor_content %}
+<div class="space-y-6">
+  
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-extrabold text-slate-900">Revenue & Earnings Dashboard 💰</h1>
+      <p class="text-slate-500 text-sm mt-0.5">Track your patient consultation earnings and monthly payouts.</p>
+    </div>
+    <a href="{% url 'doctor_payment_history' %}" class="rounded-xl border border-slate-200 bg-white hover:bg-slate-50 px-4 py-2.5 text-xs font-bold text-slate-700 transition shadow-sm shrink-0">
+      📄 View Full Payment Logs
+    </a>
+  </div>
+
+  <!-- Stats Banner -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Stat 1 -->
+    <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex items-center justify-between">
+      <div>
+        <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Gross Practice Earnings</p>
+        <p class="text-3xl font-extrabold text-slate-900 mt-2">₹{{ total_revenue|floatformat:2 }}</p>
+        <p class="text-xs text-slate-400 mt-1">Cumulative earnings from all completed bookings.</p>
+      </div>
+      <div class="h-14 w-14 rounded-2xl bg-emerald-50 text-emerald-600 text-2xl flex items-center justify-center">₹</div>
+    </div>
+    <!-- Stat 2 -->
+    <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex items-center justify-between">
+      <div>
+        <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Earnings This Month</p>
+        <p class="text-3xl font-extrabold text-slate-900 mt-2">₹{{ this_month_revenue|floatformat:2 }}</p>
+        <p class="text-xs text-slate-400 mt-1">Practice earnings registered in the current month.</p>
+      </div>
+      <div class="h-14 w-14 rounded-2xl bg-indigo-50 text-indigo-650 text-2xl flex items-center justify-center">📈</div>
+    </div>
+  </div>
+
+  <!-- Detailed Workspace -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Left: Monthly Breakdown -->
+    <div class="lg:col-span-1 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden h-fit">
+      <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+        <h2 class="text-sm font-bold text-slate-900">Monthly Statements Summary</h2>
+      </div>
+      <div class="divide-y divide-slate-100">
+        {% for me in monthly_earnings %}
+        <div class="px-6 py-4 flex items-center justify-between">
+          <div>
+            <p class="text-sm font-bold text-slate-950">{{ me.month|date:"F Y" }}</p>
+            <p class="text-xs text-slate-400 mt-0.5">{{ me.count }} Consultation{{ me.count|pluralize }}</p>
+          </div>
+          <span class="text-sm font-extrabold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100">
+            ₹{{ me.earnings|floatformat:0 }}
+          </span>
+        </div>
+        {% empty %}
+        <div class="text-center py-10 text-slate-400 text-xs">
+          No monthly statement summaries found.
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Right: Recent Payout Transactions -->
+    <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+        <h2 class="text-sm font-bold text-slate-900">Recent Successful Transactions (Last 15)</h2>
+      </div>
+      <div class="divide-y divide-slate-100">
+        {% for pay in payments %}
+        <div class="px-6 py-4.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 hover:bg-slate-50/30 transition">
+          <div>
+            <p class="text-sm font-bold text-slate-900">Txn: #{{ pay.transaction_id }}</p>
+            <div class="flex items-center gap-1.5 mt-1 text-xs text-slate-500">
+              <span class="font-bold text-slate-700">Patient:</span> {{ pay.appointment.patient.user.get_full_name }} · 📅 {{ pay.timestamp|date:"d M Y, H:i" }}
+            </div>
+          </div>
+          <div class="flex items-center gap-3 shrink-0 self-start sm:self-center">
+            <span class="text-sm font-extrabold text-slate-900">₹{{ pay.amount }}</span>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-100 px-2.5 py-0.5 rounded-md">
+              Success
+            </span>
+          </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-16 text-slate-400">
+          <p class="text-3xl mb-2">🧾</p>
+          <p class="text-xs font-semibold">No successful transaction records to show.</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

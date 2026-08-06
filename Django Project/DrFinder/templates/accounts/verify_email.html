@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}DrFinder — Email Verification{% endblock %}
+
+{% block content %}
+<div class="min-h-[80vh] flex items-center justify-center bg-slate-50 px-4 py-12">
+  <div class="w-full max-w-md text-center">
+
+    {% if status == 'success' %}
+      <div class="bg-white rounded-3xl shadow-xl border border-slate-100 p-10">
+        <div class="inline-flex h-20 w-20 items-center justify-center rounded-full bg-emerald-50 text-5xl mb-6">✅</div>
+        <h1 class="text-2xl font-extrabold text-slate-900">Email Verified!</h1>
+        <p class="text-slate-500 text-sm mt-3">
+          Welcome, <strong>{{ user.first_name }}</strong>! Your email address has been successfully verified.
+          You now have full access to DrFinder.
+        </p>
+        <a href="{% url 'dashboard' %}"
+          class="mt-8 inline-block rounded-xl bg-indigo-600 hover:bg-indigo-500 px-8 py-3 text-sm font-bold text-white shadow-md shadow-indigo-200 transition">
+          Go to Dashboard →
+        </a>
+      </div>
+
+    {% elif status == 'expired' %}
+      <div class="bg-white rounded-3xl shadow-xl border border-slate-100 p-10">
+        <div class="inline-flex h-20 w-20 items-center justify-center rounded-full bg-amber-50 text-5xl mb-6">⏰</div>
+        <h1 class="text-2xl font-extrabold text-slate-900">Link Expired</h1>
+        <p class="text-slate-500 text-sm mt-3">
+          This verification link has expired (valid for 24 hours). Please request a new one.
+        </p>
+        <a href="{% url 'resend_verification' %}"
+          class="mt-8 inline-block rounded-xl bg-indigo-600 hover:bg-indigo-500 px-8 py-3 text-sm font-bold text-white shadow-md shadow-indigo-200 transition">
+          Resend Verification Email
+        </a>
+      </div>
+
+    {% else %}
+      <div class="bg-white rounded-3xl shadow-xl border border-slate-100 p-10">
+        <div class="inline-flex h-20 w-20 items-center justify-center rounded-full bg-red-50 text-5xl mb-6">❌</div>
+        <h1 class="text-2xl font-extrabold text-slate-900">Invalid Link</h1>
+        <p class="text-slate-500 text-sm mt-3">
+          This verification link is invalid or has already been used.
+        </p>
+        <a href="{% url 'resend_verification' %}"
+          class="mt-8 inline-block rounded-xl bg-indigo-600 hover:bg-indigo-500 px-8 py-3 text-sm font-bold text-white shadow-md shadow-indigo-200 transition">
+          Request New Verification
+        </a>
+      </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

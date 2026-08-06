@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f1f5f9;font-family:Inter,Arial,sans-serif;">
+  <div style="max-width:520px;margin:40px auto;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.08);">
+    <!-- Header -->
+    <div style="background:linear-gradient(135deg,#4f46e5,#3730a3);padding:36px 40px;text-align:center;">
+      <div style="display:inline-block;background:rgba(255,255,255,.15);border-radius:14px;padding:14px 18px;font-size:28px;margin-bottom:16px;">📧</div>
+      <h1 style="color:#fff;font-size:22px;font-weight:800;margin:0;">Email Verification — DrFinder</h1>
+    </div>
+    <!-- Body -->
+    <div style="padding:36px 40px;">
+      <p style="color:#334155;font-size:15px;margin-bottom:8px;">Hi <strong>{{ user.first_name|default:user.username }}</strong>,</p>
+      <p style="color:#64748b;font-size:14px;line-height:1.7;margin-bottom:28px;">
+        Thank you for joining DrFinder! Please click the button below to verify your email address.
+        This link is valid for <strong>24 hours</strong>.
+      </p>
+      <div style="text-align:center;margin-bottom:28px;">
+        <a href="{{ verify_url }}" style="display:inline-block;background:#4f46e5;color:#fff;text-decoration:none;font-weight:700;font-size:15px;padding:14px 36px;border-radius:12px;letter-spacing:.5px;">
+          Verify Email Address →
+        </a>
+      </div>
+      <p style="color:#94a3b8;font-size:12px;line-height:1.6;">
+        If the button doesn't work, copy and paste this link into your browser:<br>
+        <a href="{{ verify_url }}" style="color:#4f46e5;word-break:break-all;">{{ verify_url }}</a>
+      </p>
+      <hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0;">
+      <p style="color:#94a3b8;font-size:12px;">
+        If you did not create a DrFinder account, you can safely ignore this email.
+      </p>
+    </div>
+    <!-- Footer -->
+    <div style="background:#f8fafc;padding:20px 40px;text-align:center;border-top:1px solid #e2e8f0;">
+      <p style="color:#94a3b8;font-size:11px;margin:0;">© 2026 DrFinder · Doctor Finder & Appointment Booking</p>
+    </div>
+  </div>
+</body>
+</html>

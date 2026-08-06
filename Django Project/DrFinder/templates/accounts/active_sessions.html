@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}DrFinder — Active Sessions{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8 bg-slate-50 min-h-[70vh]">
+
+  <!-- Header -->
+  <div class="mb-8 border-b pb-5 flex items-center justify-between">
+    <div>
+      <h2 class="text-2xl font-bold text-slate-900 sm:text-3xl">Active Sessions</h2>
+      <p class="mt-1 text-sm text-slate-500">
+        Manage all devices currently signed in to your account. Terminate any suspicious sessions immediately.
+      </p>
+    </div>
+    <a href="{% url 'login_history' %}"
+      class="rounded-xl border border-slate-200 hover:bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700 transition">
+      📋 Login History
+    </a>
+  </div>
+
+  <div class="space-y-4">
+    {% for session in sessions %}
+      <div class="bg-white rounded-2xl border {% if session.session_key == current_session_key %}border-indigo-300 ring-2 ring-indigo-100{% else %}border-slate-200{% endif %} p-5 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+
+        <div class="flex items-center gap-4">
+          <!-- Device icon -->
+          <div class="h-12 w-12 rounded-xl {% if session.session_key == current_session_key %}bg-indigo-50 text-indigo-600{% else %}bg-slate-50 text-slate-500{% endif %} flex items-center justify-center text-2xl flex-shrink-0">
+            🖥️
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-slate-900 text-sm">{{ session.get_browser }} on {{ session.get_os }}</span>
+              {% if session.session_key == current_session_key %}
+                <span class="inline-flex items-center rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-bold text-indigo-700 ring-1 ring-inset ring-indigo-600/20">
+                  Current Session
+                </span>
+              {% endif %}
+            </div>
+            <p class="text-xs text-slate-400 font-mono mt-0.5">{{ session.ip_address|default:"Unknown IP" }}</p>
+            <p class="text-xs text-slate-400 mt-1">
+              Started: {{ session.created_at|date:"d M Y H:i" }} UTC ·
+              Last Active: {{ session.last_active|timesince }} ago
+            </p>
+          </div>
+        </div>
+
+        <!-- Terminate Button -->
+        <form method="post" action="{% url 'terminate_session' session.session_key %}"
+          onsubmit="return confirm('{% if session.session_key == current_session_key %}This will log you out of your current session. Continue?{% else %}Terminate this session?{% endif %}');">
+          {% csrf_token %}
+          <button type="submit"
+            class="w-full sm:w-auto rounded-lg {% if session.session_key == current_session_key %}bg-red-600 hover:bg-red-500 text-white{% else %}border border-red-200 text-red-600 hover:bg-red-50{% endif %} px-4 py-2 text-xs font-bold transition">
+            {% if session.session_key == current_session_key %}Sign Out{% else %}Terminate{% endif %}
+          </button>
+        </form>
+
+      </div>
+    {% empty %}
+      <div class="text-center py-12 bg-white border border-slate-200 border-dashed rounded-2xl text-slate-400">
+        No active sessions found.
+      </div>
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}

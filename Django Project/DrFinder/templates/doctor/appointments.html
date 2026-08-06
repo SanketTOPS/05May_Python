@@ -1,0 +1,121 @@
+{% extends 'doctor/base_doctor.html' %}
+{% block title %}Appointments Manager — DrFinder{% endblock %}
+
+{% block doctor_content %}
+<div class="space-y-6">
+  <div>
+    <h1 class="text-2xl font-extrabold text-slate-900">Appointments Manager</h1>
+    <p class="text-slate-500 text-sm mt-0.5">Approve incoming requests, join sessions, and trace past bookings.</p>
+  </div>
+
+  <div class="space-y-8">
+
+    <!-- Incoming/Pending Section -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+      <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wider">Pending Bookings ({{ pending.count }})</h2>
+      <div class="divide-y divide-slate-100">
+        {% for appt in pending %}
+        <div class="py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div class="flex items-center gap-4">
+            <div class="h-11 w-11 rounded-xl bg-slate-55 bg-slate-100 flex items-center justify-center text-sm font-bold text-indigo-650 shrink-0">
+              {% if appt.patient.user.profile_picture %}
+                <img src="{{ appt.patient.user.profile_picture.url }}" class="h-full w-full object-cover rounded-xl" alt="">
+              {% else %}PT{% endif %}
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-slate-900">{{ appt.patient.user.get_full_name }}</h3>
+              <p class="text-xs text-slate-500">📅 {{ appt.slot.date|date:"d M Y" }} at {{ appt.slot.start_time|time:"H:i" }}</p>
+              {% if appt.symptoms %}
+                <p class="text-xs text-slate-400 mt-1 italic">Symptoms: "{{ appt.symptoms }}"</p>
+              {% endif %}
+            </div>
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            <form action="{% url 'doctor_appointment_action' appt.id 'confirm' %}" method="post">
+              {% csrf_token %}
+              <button type="submit" class="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-500 transition shadow-sm">
+                Confirm Slot
+              </button>
+            </form>
+            <form action="{% url 'doctor_appointment_action' appt.id 'cancel' %}" method="post" onsubmit="return confirm('Reject booking?')">
+              {% csrf_token %}
+              <button type="submit" class="rounded-xl border border-red-200 text-red-500 text-xs font-bold px-4 py-2 hover:bg-red-50 transition">
+                Reject
+              </button>
+            </form>
+          </div>
+        </div>
+        {% empty %}
+        <p class="text-xs text-slate-400 py-4 text-center">No pending consultation requests.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Confirmed Upcoming Section -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+      <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wider">Upcoming Confirmed ({{ upcoming.count }})</h2>
+      <div class="divide-y divide-slate-100">
+        {% for appt in upcoming %}
+        <div class="py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div class="flex items-center gap-4">
+            <div class="h-11 w-11 rounded-xl bg-slate-100 flex items-center justify-center text-sm font-bold text-indigo-650 shrink-0">
+              {% if appt.patient.user.profile_picture %}
+                <img src="{{ appt.patient.user.profile_picture.url }}" class="h-full w-full object-cover rounded-xl" alt="">
+              {% else %}PT{% endif %}
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-slate-900">{{ appt.patient.user.get_full_name }}</h3>
+              <p class="text-xs text-slate-500">📅 {{ appt.slot.date|date:"d M Y" }} at {{ appt.slot.start_time|time:"H:i" }}</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            <a href="{% url 'video_consultation' appt.id %}" class="rounded-xl bg-indigo-600 text-white text-xs font-bold px-4 py-2 hover:bg-indigo-500 transition shadow-sm">
+              📹 Join Call
+            </a>
+            <a href="{% url 'doctor_write_prescription' appt.id %}" class="rounded-xl border border-slate-200 text-slate-700 text-xs font-bold px-4 py-2 hover:bg-slate-50 transition">
+              📝 Write Prescription
+            </a>
+            <form action="{% url 'doctor_appointment_action' appt.id 'complete' %}" method="post">
+              {% csrf_token %}
+              <button type="submit" class="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-500 transition shadow-sm">
+                Mark Completed
+              </button>
+            </form>
+          </div>
+        </div>
+        {% empty %}
+        <p class="text-xs text-slate-400 py-4 text-center">No upcoming consultations.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- History / Past Bookings -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+      <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wider">Past Consultations</h2>
+      <div class="divide-y divide-slate-100">
+        {% for appt in past %}
+        <div class="py-3 flex justify-between items-center text-xs">
+          <div>
+            <p class="font-bold text-slate-900">{{ appt.patient.user.get_full_name }}</p>
+            <p class="text-slate-400">Consulted on {{ appt.slot.date|date:"d M Y" }}</p>
+          </div>
+          <div class="flex items-center gap-2">
+            {% if appt.status == 'COMPLETED' %}
+              <span class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700">Completed</span>
+            {% else %}
+              <span class="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-bold text-red-700">Cancelled</span>
+            {% endif %}
+            {% if appt.prescription %}
+              <span class="text-[10px] text-indigo-650 font-bold">Prescription Sent</span>
+            {% endif %}
+          </div>
+        </div>
+        {% empty %}
+        <p class="text-xs text-slate-400 py-3 text-center">No past records logged.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

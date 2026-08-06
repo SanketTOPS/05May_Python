@@ -1,0 +1,204 @@
+{% extends 'doctor/base_doctor.html' %}
+{% block title %}Patient Details - {{ patient_profile.user.get_full_name }} — DrFinder{% endblock %}
+
+{% block doctor_content %}
+<div class="space-y-6">
+  <!-- Back Button & Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <a href="{% url 'patient_history' %}" class="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-emerald-600 font-bold mb-2 transition">
+        ← Back to Patient History
+      </a>
+      <h1 class="text-2xl font-extrabold text-slate-900">Patient File: {{ patient_profile.user.get_full_name }} 📁</h1>
+      <p class="text-slate-500 text-sm mt-0.5">Comprehensive overview of medical logs, reports, and consultation logs.</p>
+    </div>
+  </div>
+
+  <!-- Main Patient Grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- Left: Patient Details card -->
+    <div class="lg:col-span-1 space-y-6">
+      <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col items-center text-center">
+        <div class="h-24 w-24 rounded-full bg-emerald-50 text-emerald-600 font-bold text-3xl flex items-center justify-center border-2 border-emerald-600/10 overflow-hidden mb-4">
+          {% if patient_profile.user.profile_picture %}
+            <img src="{{ patient_profile.user.profile_picture.url }}" class="h-full w-full object-cover" alt="">
+          {% else %}
+            {{ patient_profile.user.first_name|slice:":1" }}{{ patient_profile.user.last_name|slice:":1" }}
+          {% endif %}
+        </div>
+        <h2 class="text-lg font-bold text-slate-900">{{ patient_profile.user.get_full_name }}</h2>
+        <span class="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700 ring-1 ring-emerald-600/10 mt-1">Patient</span>
+
+        <hr class="w-full my-5 border-slate-100">
+
+        <div class="w-full text-left space-y-3.5 text-sm">
+          <div class="flex justify-between items-center">
+            <span class="text-slate-400 font-medium">Gender</span>
+            <span class="font-bold text-slate-700">{{ patient_profile.get_gender_display|default:"Not specified" }}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-slate-400 font-medium">Date of Birth</span>
+            <span class="font-bold text-slate-700">{{ patient_profile.date_of_birth|date:"d M Y"|default:"Not specified" }}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-slate-400 font-medium">Blood Group</span>
+            <span class="font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-md text-xs">{{ patient_profile.blood_group|default:"Unknown" }}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-slate-400 font-medium">Contact Phone</span>
+            <span class="font-bold text-slate-700">{{ patient_profile.user.phone|default:"No phone" }}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-slate-400 font-medium">Email Address</span>
+            <span class="font-bold text-slate-700 truncate max-w-[160px]">{{ patient_profile.user.email }}</span>
+          </div>
+          <div class="flex justify-between items-start">
+            <span class="text-slate-400 font-medium shrink-0">Emergency Contact</span>
+            <span class="font-bold text-slate-700 text-right">{{ patient_profile.emergency_contact|default:"None" }}</span>
+          </div>
+          <div class="flex justify-between items-start">
+            <span class="text-slate-400 font-medium shrink-0">Address</span>
+            <span class="font-bold text-slate-700 text-right max-w-[180px] truncate-3-lines">
+              {{ patient_profile.address|default:"" }}, {{ patient_profile.city|default:"" }}, {{ patient_profile.state|default:"" }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Medical History Summary -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+        <h3 class="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
+          <span>📋</span> Chronic Illnesses & Medical History
+        </h3>
+        <div class="bg-slate-50 border border-slate-100 rounded-xl p-4 text-xs leading-relaxed text-slate-600 font-medium whitespace-pre-line">
+          {{ patient_profile.medical_history|default:"No chronic medical history noted." }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Tabs / Detailed records -->
+    <div class="lg:col-span-2 space-y-6">
+
+      <!-- Appointments List with this Doctor -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+          <h2 class="text-sm font-bold text-slate-900">Your Consultations with this Patient</h2>
+          <span class="text-xs bg-slate-100 text-slate-650 px-2 py-0.5 rounded font-bold">{{ appointments.count }} Total</span>
+        </div>
+        <div class="divide-y divide-slate-100">
+          {% for appt in appointments %}
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-6 py-4">
+            <div>
+              <p class="text-sm font-bold text-slate-900">Appointment ID: #{{ appt.id }}</p>
+              <div class="flex flex-wrap gap-2 items-center mt-1">
+                <span class="text-xs text-slate-500">📅 {{ appt.slot.date|date:"d M Y" }} · ⏰ {{ appt.slot.start_time|time:"H:i" }}</span>
+                <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold 
+                  {% if appt.status == 'COMPLETED' %}bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/20
+                  {% elif appt.status == 'CONFIRMED' %}bg-blue-50 text-blue-700 ring-1 ring-blue-600/20
+                  {% elif appt.status == 'PENDING' %}bg-amber-50 text-amber-700 ring-1 ring-amber-600/20
+                  {% else %}bg-slate-50 text-slate-700 ring-1 ring-slate-600/20{% endif %}">
+                  {{ appt.get_status_display }}
+                </span>
+              </div>
+              {% if appt.symptoms %}
+              <div class="mt-2 text-xs text-slate-600">
+                <span class="font-bold text-slate-700">Symptoms:</span> {{ appt.symptoms }}
+              </div>
+              {% endif %}
+            </div>
+            <div class="flex gap-2 self-start sm:self-center shrink-0">
+              {% if appt.status == 'CONFIRMED' %}
+                <a href="{% url 'video_consultation' appt.id %}" class="rounded-lg bg-indigo-650 hover:bg-indigo-600 px-3 py-1.5 text-xs font-bold text-white transition">Start Video Room</a>
+                <a href="{% url 'doctor_write_prescription' appt.id %}" class="rounded-lg bg-emerald-600 hover:bg-emerald-500 px-3 py-1.5 text-xs font-bold text-white transition">Prescribe</a>
+              {% elif appt.status == 'COMPLETED' %}
+                <a href="{% url 'doctor_write_prescription' appt.id %}" class="rounded-lg border border-slate-200 text-slate-600 px-3 py-1.5 text-xs font-bold hover:bg-slate-50 transition">View/Edit Prescription</a>
+              {% endif %}
+            </div>
+          </div>
+          {% empty %}
+          <div class="text-center py-8 text-slate-400">
+            <p class="text-2xl mb-1">📅</p>
+            <p class="text-xs font-semibold">No direct consultations recorded yet.</p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Prescriptions Written -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100">
+          <h2 class="text-sm font-bold text-slate-900">Prescription Log</h2>
+        </div>
+        <div class="divide-y divide-slate-100">
+          {% for presc in prescriptions %}
+          <div class="p-6">
+            <div class="flex justify-between items-start gap-4">
+              <div>
+                <p class="text-xs font-bold text-emerald-700">📅 Written on: {{ presc.created_at|date:"d M Y · H:i" }}</p>
+                <p class="text-xs text-slate-400 mt-0.5">Appointment reference: #{{ presc.appointment.id }}</p>
+              </div>
+              {% if presc.follow_up_date %}
+              <span class="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full ring-1 ring-indigo-600/20">
+                🔄 Follow-up: {{ presc.follow_up_date|date:"d M Y" }}
+              </span>
+              {% endif %}
+            </div>
+            
+            <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="bg-slate-50 border border-slate-100 rounded-xl p-3.5">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Prescribed Medicines</span>
+                <p class="text-xs font-medium text-slate-700 mt-1 whitespace-pre-line leading-relaxed">{{ presc.medicines }}</p>
+              </div>
+              <div class="bg-slate-50 border border-slate-100 rounded-xl p-3.5">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Instructions</span>
+                <p class="text-xs font-medium text-slate-700 mt-1 whitespace-pre-line leading-relaxed">{{ presc.instructions|default:"No custom instructions." }}</p>
+              </div>
+            </div>
+          </div>
+          {% empty %}
+          <div class="text-center py-8 text-slate-400">
+            <p class="text-2xl mb-1">💊</p>
+            <p class="text-xs font-semibold">No prescriptions written for this patient yet.</p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Uploaded Medical Reports -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100">
+          <h2 class="text-sm font-bold text-slate-900">Uploaded Medical Records & Reports</h2>
+        </div>
+        <div class="divide-y divide-slate-100">
+          {% for rpt in reports %}
+          <div class="flex items-center justify-between gap-4 px-6 py-4">
+            <div class="flex items-center gap-3">
+              <div class="h-10 w-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center text-lg border border-indigo-100">
+                📄
+              </div>
+              <div>
+                <p class="text-sm font-bold text-slate-900">{{ rpt.title }}</p>
+                <p class="text-xs text-slate-500">Uploaded on: {{ rpt.uploaded_at|date:"d M Y · H:i" }}</p>
+              </div>
+            </div>
+            {% if rpt.file %}
+              <a href="{{ rpt.file.url }}" target="_blank" class="rounded-lg border border-slate-200 hover:bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-750 transition flex items-center gap-1.5 shrink-0">
+                📥 View/Download
+              </a>
+            {% endif %}
+          </div>
+          {% empty %}
+          <div class="text-center py-8 text-slate-400">
+            <p class="text-2xl mb-1">📁</p>
+            <p class="text-xs font-semibold">No medical reports uploaded by this patient.</p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block title %}DrFinder - Join as Doctor Partner{% endblock %}
+
+{% block content %}
+<div class="min-h-full flex flex-col justify-center py-12 sm:px-6 lg:px-8 bg-slate-50">
+    <div class="sm:mx-auto sm:w-full sm:max-w-md">
+        <h2 class="mt-6 text-center text-3xl font-extrabold text-slate-900">Join as a Medical Partner</h2>
+        <p class="mt-2 text-center text-sm text-slate-500">
+            Already have an account?
+            <a href="{% url 'login' %}" class="font-semibold text-indigo-600 hover:text-indigo-500">
+                Sign in
+            </a>
+        </p>
+    </div>
+
+    <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-2xl">
+        <div class="bg-white py-8 px-4 shadow sm:rounded-2xl sm:px-10 border border-slate-200">
+            <form class="space-y-6" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <h3 class="text-sm font-semibold uppercase tracking-wider text-indigo-600 border-b pb-2">Account Details</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="id_username" class="block text-sm font-semibold text-slate-700">Username *</label>
+                        {{ form.username }}
+                        {% if form.username.errors %}
+                            <p class="text-xs text-red-600 mt-1">{{ form.username.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="id_email" class="block text-sm font-semibold text-slate-700">Email Address *</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <p class="text-xs text-red-600 mt-1">{{ form.email.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="id_password" class="block text-sm font-semibold text-slate-700">Password *</label>
+                        {{ form.password }}
+                        {% if form.password.errors %}
+                            <p class="text-xs text-red-600 mt-1">{{ form.password.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="id_confirm_password" class="block text-sm font-semibold text-slate-700">Confirm Password *</label>
+                        {{ form.confirm_password }}
+                        {% if form.confirm_password.errors %}
+                            <p class="text-xs text-red-600 mt-1">{{ form.confirm_password.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <h3 class="text-sm font-semibold uppercase tracking-wider text-indigo-600 border-b pt-4 pb-2">Professional Credentials</h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="id_first_name" class="block text-sm font-semibold text-slate-700">First Name *</label>
+                        {{ form.first_name }}
+                    </div>
+                    <div>
+                        <label for="id_last_name" class="block text-sm font-semibold text-slate-700">Last Name *</label>
+                        {{ form.last_name }}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="id_phone" class="block text-sm font-semibold text-slate-700">Phone Number *</label>
+                        {{ form.phone }}
+                        {% if form.phone.errors %}
+                            <p class="text-xs text-red-600 mt-1">{{ form.phone.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="id_profile_picture" class="block text-sm font-semibold text-slate-700">Avatar / Photo *</label>
+                        {{ form.profile_picture }}
+                        {% if form.profile_picture.errors %}
+                            <p class="text-xs text-red-600 mt-1">{{ form.profile_picture.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="id_specialization" class="block text-sm font-semibold text-slate-700">Specialization *</label>
+                        {{ form.specialization }}
+                    </div>
+                    <div>
+                        <label for="id_qualification" class="block text-sm font-semibold text-slate-700">Qualifications *</label>
+                        {{ form.qualification }}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="id_experience_years" class="block text-sm font-semibold text-slate-700">Years of Experience *</label>
+                        {{ form.experience_years }}
+                    </div>
+                    <div>
+                        <label for="id_consultation_fee" class="block text-sm font-semibold text-slate-700">Consultation Fee ($) *</label>
+                        {{ form.consultation_fee }}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 gap-4">
+                    <div>
+                        <label for="id_hospital_name" class="block text-sm font-semibold text-slate-700">Hospital / Clinic Name *</label>
+                        {{ form.hospital_name }}
+                    </div>
+                    <div>
+                        <label for="id_address" class="block text-sm font-semibold text-slate-700">Clinic Address *</label>
+                        {{ form.address }}
+                    </div>
+                    <div>
+                        <label for="id_bio" class="block text-sm font-semibold text-slate-700">Short Bio</label>
+                        {{ form.bio }}
+                    </div>
+                </div>
+
+                <div class="rounded-lg bg-amber-50 p-4 border border-amber-200">
+                    <div class="flex">
+                        <div class="flex-shrink-0 text-amber-500">⚠️</div>
+                        <div class="ml-3 text-sm text-amber-800">
+                            <strong>Note:</strong> Your profile must be approved by the platform administrator before patients can view you or book appointments.
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <button type="submit" 
+                            class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-md text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition">
+                        Submit Registration
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

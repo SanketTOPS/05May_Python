@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+
+{% block title %}DrFinder - Secure Checkout{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8 bg-slate-50 min-h-[70vh]">
+    <div class="mb-8 border-b pb-5">
+        <h2 class="text-2xl font-bold text-slate-900 sm:text-3xl">Secure Consultation Checkout</h2>
+        <p class="mt-1 text-sm text-slate-500">Pay your consultation fee online to confirm your scheduled slot.</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <!-- Order Summary Card (5 Columns) -->
+        <div class="lg:col-span-5 bg-white border border-slate-200 p-6 rounded-2xl shadow-sm h-fit space-y-6">
+            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 border-b pb-2">Consultation Details</h3>
+            
+            <div class="flex items-center gap-3">
+                <div class="h-12 w-12 rounded-xl bg-slate-100 overflow-hidden flex-shrink-0 flex items-center justify-center border">
+                    {% if appointment.doctor.user.profile_picture %}
+                        <img src="{{ appointment.doctor.user.profile_picture.url }}" alt="" class="h-full w-full object-cover">
+                    {% else %}
+                        <span class="text-sm font-bold text-indigo-400">DR</span>
+                    {% endif %}
+                </div>
+                <div>
+                    <h4 class="text-sm font-bold text-slate-900">Dr. {{ appointment.doctor.user.get_full_name }}</h4>
+                    <span class="text-xs text-indigo-600 block font-semibold">{{ appointment.doctor.get_specialization_display }}</span>
+                </div>
+            </div>
+
+            <div class="space-y-3 text-xs pt-4 border-t border-slate-100">
+                <div class="flex justify-between">
+                    <span class="text-slate-400">Date</span>
+                    <span class="font-bold text-slate-800">{{ appointment.slot.date|date:"l, F d, Y" }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400">Time Slot</span>
+                    <span class="font-bold text-slate-800">{{ appointment.slot.start_time|time:"H:i" }} - {{ appointment.slot.end_time|time:"H:i" }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400">Hospital</span>
+                    <span class="font-bold text-slate-800 text-right">{{ appointment.doctor.hospital_name }}</span>
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
+                <span class="text-sm font-bold text-slate-900">Consultation Fee</span>
+                <span class="text-xl font-extrabold text-indigo-600">₹{{ fee }}</span>
+            </div>
+        </div>
+
+        <!-- Razorpay Payment Card (7 Columns) -->
+        <div class="lg:col-span-7 bg-white border border-slate-200 p-6 sm:p-8 rounded-2xl shadow-sm space-y-6">
+            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 border-b pb-2">Pay with Razorpay</h3>
+
+            <!-- Razorpay info box -->
+            <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-4 text-xs text-indigo-800 space-y-1">
+                <strong>Secure Payment via Razorpay</strong>
+                <p>Click the button below to open Razorpay's secure checkout. You can pay with UPI, Credit / Debit Card, Net Banking, or Wallets.</p>
+                <div class="font-mono mt-2 bg-white/70 p-2 rounded border space-y-0.5 text-slate-500">
+                    <div>Test Card: 4111 1111 1111 1111</div>
+                    <div>Expiry: Any future date | CVV: Any 3 digits</div>
+                </div>
+            </div>
+
+            <!-- Razorpay Logo and Amount -->
+            <div class="flex flex-col items-center space-y-4 py-4">
+                <div class="flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-8 w-8 text-blue-600" fill="currentColor">
+                        <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm1.544 18.572H7.56l1.348-5.024-3.12 5.024H3.456l4.932-13.368h2.508L9.288 10.5h3.12l-1.608 5.004h3.096l-.352 3.068z"/>
+                    </svg>
+                    <span class="text-lg font-bold text-slate-700">Razorpay Checkout</span>
+                </div>
+                <div class="text-center">
+                    <p class="text-3xl font-extrabold text-slate-900">₹{{ fee }}</p>
+                    <p class="text-xs text-slate-400 mt-1">Consultation fee for Dr. {{ appointment.doctor.user.get_full_name }}</p>
+                </div>
+            </div>
+
+            <!-- Pay Button -->
+            <button id="razorpay-pay-btn" type="button"
+                class="w-full rounded-xl bg-blue-600 hover:bg-blue-700 py-3.5 text-sm font-bold text-white transition shadow-lg shadow-blue-200 mt-4 flex items-center justify-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                Pay ₹{{ fee }} with Razorpay
+            </button>
+
+            <!-- Hidden form for callback -->
+            <form id="razorpay-callback-form" method="POST" action="{% url 'razorpay_callback' appointment.id %}">
+                {% csrf_token %}
+                <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
+                <input type="hidden" name="razorpay_order_id"   id="razorpay_order_id">
+                <input type="hidden" name="razorpay_signature"  id="razorpay_signature">
+            </form>
+
+            <p class="text-center text-xs text-slate-400 mt-3">
+                🔒 Your payment is secured by Razorpay's PCI DSS Level 1 compliant infrastructure.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Razorpay JS SDK -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    var options = {
+        "key":        "{{ razorpay_key_id }}",
+        "amount":     "{{ amount_paise }}",
+        "currency":   "INR",
+        "name":       "DrFinder",
+        "description": "Consultation Fee – Dr. {{ appointment.doctor.user.get_full_name }}",
+        "order_id":   "{{ razorpay_order_id }}",
+        "handler":    function (response) {
+            // Fill hidden form and submit to our callback
+            document.getElementById('razorpay_payment_id').value = response.razorpay_payment_id;
+            document.getElementById('razorpay_order_id').value   = response.razorpay_order_id;
+            document.getElementById('razorpay_signature').value  = response.razorpay_signature;
+            document.getElementById('razorpay-callback-form').submit();
+        },
+        "prefill": {
+            "name":  "{{ user_name }}",
+            "email": "{{ user_email }}"
+        },
+        "theme": {
+            "color": "#4f46e5"
+        },
+        "modal": {
+            "ondismiss": function () {
+                // User closed popup without paying
+            }
+        }
+    };
+
+    var rzp = new Razorpay(options);
+
+    document.getElementById('razorpay-pay-btn').addEventListener('click', function (e) {
+        rzp.open();
+        e.preventDefault();
+    });
+</script>
+{% endblock %}

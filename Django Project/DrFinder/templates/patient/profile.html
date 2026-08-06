@@ -1,0 +1,105 @@
+{% extends 'patient/base_patient.html' %}
+{% block title %}My Profile — DrFinder{% endblock %}
+
+{% block patient_content %}
+<div class="max-w-3xl space-y-6">
+  <div>
+    <h1 class="text-2xl font-extrabold text-slate-900">My Profile</h1>
+    <p class="text-slate-500 text-sm mt-1">Manage your personal and medical profile information.</p>
+  </div>
+
+  <form method="post" enctype="multipart/form-data" class="space-y-6">
+    {% csrf_token %}
+
+    <!-- Avatar -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+      <h2 class="text-sm font-bold text-slate-700 mb-4 uppercase tracking-wider">Profile Picture</h2>
+      <div class="flex items-center gap-5">
+        <div class="h-20 w-20 rounded-full border-4 border-indigo-100 overflow-hidden bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold text-xl shrink-0">
+          {% if request.user.profile_picture %}
+            <img src="{{ request.user.profile_picture.url }}" class="h-full w-full object-cover" alt="">
+          {% else %}
+            {{ request.user.get_full_name|default:request.user.username|slice:":2"|upper }}
+          {% endif %}
+        </div>
+        <div>
+          <label class="cursor-pointer inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition">
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            Upload Photo
+            {{ user_form.profile_picture }}
+          </label>
+          <p class="text-xs text-slate-400 mt-1">JPG, PNG. Max 2MB.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Personal Info -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+      <h2 class="text-sm font-bold text-slate-700 mb-4 uppercase tracking-wider">Personal Information</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">First Name</label>
+          {{ user_form.first_name }}
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Last Name</label>
+          {{ user_form.last_name }}
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Email</label>
+          {{ user_form.email }}
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Phone</label>
+          {{ user_form.phone }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Medical Info -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+      <h2 class="text-sm font-bold text-slate-700 mb-4 uppercase tracking-wider">Medical Information</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Date of Birth</label>
+          {{ profile_form.date_of_birth }}
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Gender</label>
+          {{ profile_form.gender }}
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Blood Group</label>
+          {{ profile_form.blood_group }}
+        </div>
+        <div class="sm:col-span-2">
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Medical History / Conditions</label>
+          {{ profile_form.medical_history }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Errors -->
+    {% if user_form.errors or profile_form.errors %}
+    <div class="bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">
+      Please correct the errors highlighted above.
+    </div>
+    {% endif %}
+
+    <div class="flex gap-3">
+      <button type="submit" class="rounded-xl bg-indigo-600 px-6 py-2.5 text-sm font-bold text-white shadow-md hover:bg-indigo-500 transition">
+        Save Changes
+      </button>
+      <a href="{% url 'patient_dashboard' %}" class="rounded-xl border border-slate-300 px-6 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition">
+        Cancel
+      </a>
+    </div>
+  </form>
+</div>
+<style>
+  input[type="text"], input[type="email"], input[type="tel"], input[type="date"],
+  select, textarea { width:100%; border:1px solid #e2e8f0; border-radius:10px; padding:9px 12px; font-size:0.875rem; color:#1e293b; outline:none; background:#fff; }
+  input:focus, select:focus, textarea:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.1); }
+  input[type="file"] { display:none; }
+</style>
+{% endblock %}

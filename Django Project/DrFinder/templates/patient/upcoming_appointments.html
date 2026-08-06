@@ -1,0 +1,75 @@
+{% extends 'patient/base_patient.html' %}
+{% block title %}Upcoming Appointments — DrFinder{% endblock %}
+
+{% block patient_content %}
+<div class="space-y-6">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-extrabold text-slate-900">Upcoming Appointments</h1>
+      <p class="text-slate-500 text-sm mt-1">Your confirmed and pending consultations.</p>
+    </div>
+    <a href="{% url 'doctor_search' %}" class="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 transition shadow-md">
+      + Book New
+    </a>
+  </div>
+
+  {% if upcoming %}
+  <div class="space-y-4">
+    {% for appt in upcoming %}
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 hover:shadow-md transition">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 justify-between">
+        <div class="flex items-center gap-4">
+          <div class="h-14 w-14 rounded-xl bg-slate-50 border overflow-hidden flex items-center justify-center font-bold text-indigo-600 shrink-0">
+            {% if appt.doctor.user.profile_picture %}
+              <img src="{{ appt.doctor.user.profile_picture.url }}" class="h-full w-full object-cover" alt="">
+            {% else %}DR{% endif %}
+          </div>
+          <div>
+            <span class="text-xs font-bold text-indigo-600 uppercase tracking-wider">{{ appt.doctor.get_specialization_display }}</span>
+            <h3 class="text-base font-bold text-slate-900">Dr. {{ appt.doctor.user.get_full_name }}</h3>
+            <p class="text-xs text-slate-400">{{ appt.doctor.hospital_name }}</p>
+            <div class="flex items-center gap-3 mt-1.5 text-xs text-slate-500">
+              <span>📅 {{ appt.slot.date|date:"D, d M Y" }}</span>
+              <span>⏰ {{ appt.slot.start_time|time:"H:i" }}–{{ appt.slot.end_time|time:"H:i" }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="flex flex-col items-start sm:items-end gap-2 w-full sm:w-auto">
+          {% if appt.status == 'CONFIRMED' %}
+            <span class="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 ring-1 ring-emerald-600/20">✓ Confirmed</span>
+            <div class="flex gap-2">
+              <a href="{% url 'payment_receipt' appt.payment.id %}" class="rounded-lg border border-slate-200 text-slate-600 text-xs font-bold px-3 py-1.5 hover:bg-slate-50 transition">Receipt</a>
+              <form action="{% url 'appointment_action' appt.id 'cancel' %}" method="post" onsubmit="return confirm('Cancel this appointment?')">
+                {% csrf_token %}
+                <button type="submit" class="rounded-lg border border-red-200 text-red-500 text-xs font-bold px-3 py-1.5 hover:bg-red-50 transition">Cancel</button>
+              </form>
+            </div>
+          {% elif appt.status == 'PENDING' %}
+            <span class="inline-flex items-center rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700 ring-1 ring-amber-600/20">⏳ Pending Payment</span>
+            <a href="{% url 'payment_checkout' appt.id %}" class="rounded-xl bg-emerald-600 px-4 py-1.5 text-xs font-bold text-white hover:bg-emerald-500 transition">
+              Pay ₹{{ appt.doctor.consultation_fee }} →
+            </a>
+          {% endif %}
+        </div>
+      </div>
+      {% if appt.symptoms %}
+      <div class="mt-4 pt-4 border-t border-slate-100">
+        <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Symptoms</p>
+        <p class="text-sm text-slate-600 mt-1">{{ appt.symptoms }}</p>
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="bg-white rounded-2xl border border-dashed border-slate-300 p-16 text-center">
+    <p class="text-5xl mb-4">📅</p>
+    <h2 class="text-lg font-bold text-slate-700">No upcoming appointments</h2>
+    <p class="text-slate-400 text-sm mt-1 mb-6">Book a consultation with one of our verified doctors.</p>
+    <a href="{% url 'doctor_search' %}" class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 transition shadow-md">
+      Find a Doctor
+    </a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
