@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome | Faculty</title>
+</head>
+
+<body style="background-color: azure;">
+    <h1 style="text-align: center;color: blue;">Welcome to Faculty App</h1>
+    <hr>
+
+    <table border="2" align="center">
+        <tr>
+            <td>ID</td>
+            <td>Name</td>
+            <td>Email</td>
+            <td>Subject</td>
+        </tr>
+        {% for i in data %}
+        <tr>
+            <td>{{i.id}}</td>
+            <td>{{i.name}}</td>
+            <td>{{i.email}}</td>
+            <td>{{i.subject}}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+</body>
+
+</html>
